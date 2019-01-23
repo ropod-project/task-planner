@@ -236,7 +236,7 @@ class KnowledgeBaseInterface(object):
         names = list({f['name'] for f in fluent_cursor})
         return names
 
-    def get_all_predicate_assertions(self, predicate_name: str=None) -> list:
+    def get_predicate_assertions(self, predicate_name: str=None) -> list:
         '''Returns a list of Predicate objects representing all assertions
         of the given predicate in the knowledge base. If "predicate_name" is None,
         returns all predicate assertions in the knowledge base.
