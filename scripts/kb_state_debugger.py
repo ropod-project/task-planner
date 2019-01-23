@@ -15,7 +15,7 @@ if __name__ == '__main__':
         while True:
             predicates = kb_interface.get_predicate_names()
             for predicate in predicates:
-                predicate_instances = kb_interface.get_all_attributes(predicate)
+                predicate_instances = kb_interface.get_all_predicate_assertions(predicate)
                 if predicate_instances:
                     print(colored(predicate, 'green'))
                     print('--------------------')
