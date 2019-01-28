@@ -1,90 +1,62 @@
-from os.path import join
-import uuid
-import subprocess
-from termcolor import colored
-from task_planner.knowledge_base_interface import KnowledgeBaseInterface
-from task_planner.action_models import ActionModelLibrary
+from abc import abstractmethod
+from typing import Tuple
 from ropod.structs.task import TaskRequest
 from ropod.structs.action import Action
+from task_planner.knowledge_base_interface import KnowledgeBaseInterface
 
 class TaskPlannerInterface(object):
-    def __init__(self, kb_database_name, planner_cmd, plan_file_path, debug=False):
+    def __init__(self, kb_database_name, domain_file, planner_cmd, plan_file_path, debug=False):
         self.kb_interface = KnowledgeBaseInterface(kb_database_name)
-        self.planner_cmd = planner_cmd
+        self.domain_file = domain_file
+        self.domain_name = self.__get_domain_name(self.domain_file)
+        self.planner_cmd = planner_cmd.replace('DOMAIN', self.domain_file)
         self.plan_file_path = plan_file_path
         self.debug = debug
-        self.__planner_cmd_elements = self.planner_cmd.split(' ')
 
+    @abstractmethod
     def plan(self, task_request: TaskRequest,
              robot: str, plan_goals: list=None):
+        pass
 
-        task_goals = [('cart_at', [('cart', task_request.cart_id),
-                                   ('loc', task_request.delivery_pose.id)]),
-                      ('empty_gripper', [('bot', robot)])]
+    @abstractmethod
+    def generate_problem_file(self, predicate_assertions: list,
+                              fluent_assertions: list, task_goals: list) -> str:
+        pass
 
-        # TODO: check if the specified goals are contradicting the overall task goals
-        if plan_goals is not None:
-            task_goals.extend(plan_goals)
-
-        kb_assertions = self.kb_interface.get_all_predicate_assertions()
-
-        # TODO: generate a problem file from the knowledge base
-        # and the list of goals before calling the planner
-
-        plan_file_name = 'plan_{0}.txt'.format(str(uuid.uuid4()))
-        plan_file_abs_path = join(self.plan_file_path, plan_file_name)
-        print(colored('[task_planner] Planning task...', 'green'))
-        with open(plan_file_abs_path, 'w') as plan_file:
-            subprocess.run(self.__planner_cmd_elements, stdout=plan_file)
-            print(colored('[task_planner] Planning finished', 'green'))
-
-        plan_found, plan = self.__parse_plan(plan_file_abs_path, task_request.cart_type, robot)
-        return plan_found, plan
-
+    @abstractmethod
     def process_action_str(self, action_line: str) -> Action:
-        action_data = action_line[action_line.find(':')+2:].split()
-        action_name = action_data[0]
-        action_params = action_data[1:]
-        action = ActionModelLibrary.get_action_model(action_name, action_params)
-        print(action.to_dict())
-        return action
+        pass
 
-    def __parse_plan(self, plan_file_abs_path: str, task: str, robot: str) -> list:
-        plan_found = False
-        processing_plan = False
-        plan = []
-        with open(plan_file_abs_path, 'r') as plan_file:
-            while True:
-                line = plan_file.readline()
-                if not line:
-                    break
+    @abstractmethod
+    def parse_plan(self, plan_file_abs_path: str, task: str,
+                   robot: str) -> Tuple[bool, list]:
+        pass
 
-                if processing_plan:
-                    if line == '\n':
-                        processing_plan = False
-                        if self.debug:
-                            print(colored('-------------------------------', 'green'))
-                    else:
-                        action = self.process_action_str(line.strip())
-                        plan.append(action)
-                        if self.debug:
-                            print(colored(line.strip(), 'yellow'))
+    def __get_domain_name(self, domain_file_name: str) -> str:
+        '''Extracts the name of the planning domain from the given file
+        by looking for the first line that contains the words "define" and
+        "domain" and then parsing the domain line from it.
 
-                if 'found legal plan' in line.lower():
-                    plan_found = True
-                    print(colored('[task_planner] Plan for task {0} and robot {1} found'.format(task, robot), 'green'))
-                    if self.debug:
-                        print(colored('[task_planner] Action sequence:', 'green'))
-                        print(colored('-------------------------------', 'green'))
+        Keyword arguments:
+        @param domain_file_name: str -- absolute path of a PDDL domain file
 
-                if 'step' in line.lower():
-                    line = line[4:]
-                    processing_plan = True
-                    action = self.process_action_str(line.strip())
-                    plan.append(action)
-                    if self.debug:
-                        print(colored(line.strip(), 'yellow'))
+        '''
+        line = ''
+        with open(domain_file_name, 'r') as domain_file:
+            line = ''
+            domain_defn_found = False
+            while not domain_defn_found:
+                line = domain_file.readline().lower()
+                domain_defn_found = line.find('define') != -1 and line.find('domain') != -1
+        domain_idx = line.lower().find('domain') + 1
+        line = line[domain_idx+6:]
+        idx = 0
+        while line[idx] == ' ':
+            idx += 1
 
-        if not plan_found:
-            print(colored('[task_planner] Plan for task {0} and robot {1} not found'.format(task, robot), 'red'))
-        return plan_found, plan
+        domain_name_start_idx = idx
+        while line[idx] != ' ' and line[idx] != ')':
+            idx += 1
+        domain_name_end_idx = idx - 1
+        domain_name = line[domain_name_start_idx:domain_name_end_idx+1]
+        return domain_name

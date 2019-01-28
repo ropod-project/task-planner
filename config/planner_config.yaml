@@ -1,0 +1,4 @@
+planner_name: Metric-FF
+domain_file: [path-to-config]/config/task_domains/agaplesion/hospital_transportation.pddl
+planner_cmd: [path-to-executable]bin/Metric-FF -o DOMAIN -f PROBLEM -s 0
+plan_file_path: .
