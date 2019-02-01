@@ -38,7 +38,7 @@ Note: The package is developed for Python 3.5+ since it makes use of Python typi
 The task planner is based on the following assumptions:
 * A planner working with PDDL domains is used
 * The parameters of the domain predicates, fluents, and actions are explicitly typed
-* Only single-robot planning is done, so a robot is assumed to be assigned to a task before the planner is called
+* Only single-robot planning is done
 
 The following main design principles were followed in the development of this package:
 * Knowledge is stored in a MongoDB database since having persistent storage of the knowledge makes it possible to recover from software failures
@@ -120,8 +120,13 @@ task_request.delivery_pose.id = 'BRSU_L0_C0'
 
 robot_name = 'frank'
 
+# creating the list of task goals
+task_goals = [('cart_at', [('cart', task_request.cart_id),
+                           ('loc', task_request.delivery_pose.id)]),
+              ('empty_gripper', [('bot', robot_name)])]
+
 # requesting a plan
-plan_found, plan = planner.plan(task_request, robot_name)
+plan_found, plan = planner.plan(task_request, robot_name, task_goals)
 ```
 
 ## API description

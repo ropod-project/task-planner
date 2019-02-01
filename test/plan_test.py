@@ -21,4 +21,7 @@ task_request.cart_id = 'mobidik_123'
 task_request.delivery_pose.id = 'BRSU_L0_C0'
 
 robot_name = 'frank'
-plan_found, plan = planner.plan(task_request, robot_name)
+task_goals = [('cart_at', [('cart', task_request.cart_id),
+                           ('loc', task_request.delivery_pose.id)]),
+              ('empty_gripper', [('bot', robot_name)])]
+plan_found, plan = planner.plan(task_request, robot_name, task_goals)

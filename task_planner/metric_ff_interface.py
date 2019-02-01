@@ -18,16 +18,9 @@ class MetricFFInterface(TaskPlannerInterface):
                                                 planner_cmd, plan_file_path,
                                                 debug)
 
-    def plan(self, task_request: TaskRequest,
-             robot: str, plan_goals: list=None):
-
-        task_goals = [('cart_at', [('cart', task_request.cart_id),
-                                   ('loc', task_request.delivery_pose.id)]),
-                      ('empty_gripper', [('bot', robot)])]
-
-        # TODO: check if the specified goals are contradicting the overall task goals
-        if plan_goals is not None:
-            task_goals.extend(plan_goals)
+    def plan(self, task_request: TaskRequest, robot: str, task_goals: list=None):
+        # TODO: check if there are already goals in the knowledge base and,
+        # if yes, add them to the task_goals list
 
         kb_predicate_assertions = self.kb_interface.get_predicate_assertions()
         kb_fluent_assertions = self.kb_interface.get_fluent_assertions()
