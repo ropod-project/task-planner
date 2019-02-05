@@ -25,6 +25,7 @@ class MetricFFInterface(TaskPlannerInterface):
         kb_predicate_assertions = self.kb_interface.get_predicate_assertions()
         kb_fluent_assertions = self.kb_interface.get_fluent_assertions()
 
+        print(colored('[task_planner] Generating problem file', 'green'))
         problem_file = self.generate_problem_file(kb_predicate_assertions,
                                                   kb_fluent_assertions,
                                                   task_goals)
@@ -63,9 +64,9 @@ class MetricFFInterface(TaskPlannerInterface):
             ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
                                                                                        assertion.params,
                                                                                        obj_types)
-            assertion_str = '        (= ({0} {1}) {2})'.format(assertion.name,
-                                                               ' '.join(ordered_param_list),
-                                                               assertion.value)
+            assertion_str = '        (= ({0} {1}) {2})\n'.format(assertion.name,
+                                                                 ' '.join(ordered_param_list),
+                                                                 assertion.value)
             init_state_str += assertion_str
 
         # we combine the assertion strings into an initial state string of the form
@@ -95,7 +96,6 @@ class MetricFFInterface(TaskPlannerInterface):
         # )
         goal_str = ''
         for goal_predicate, goal_params in task_goals:
-            print(goal_params)
             goal_str += '            ({0} {1})\n'.format(goal_predicate,
                                                          ' '.join([param[1] for param in goal_params]))
         goal_str = '    (:goal\n        (and\n{0}        )\n    )\n'.format(goal_str)
@@ -124,7 +124,7 @@ class MetricFFInterface(TaskPlannerInterface):
             problem_file.write(init_state_str)
             problem_file.write(goal_str)
             problem_file.write(')\n')
-        return problem_file_name
+        return problem_file_abs_path
 
     def parse_plan(self, plan_file_abs_path: str, task: str, robot: str) -> Tuple[bool, list]:
         plan_found = False
