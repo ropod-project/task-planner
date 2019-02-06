@@ -14,14 +14,14 @@ class ActionModelLibrary(object):
     @staticmethod
     def GOTO(action: Action, params: list) -> Action:
         destination_area = Area()
-        destination_area.name = params[2]
+        destination_area.name = ActionModelLibrary.__room_to_camel_case(params[2])
         action.areas.append(destination_area)
         return action
 
     @staticmethod
     def DOCK(action: Action, params: list) -> Action:
         pickup_area = Area()
-        pickup_area.name = params[2]
+        pickup_area.name = ActionModelLibrary.__room_to_camel_case(params[2])
         action.areas.append(pickup_area)
         return action
 
@@ -47,4 +47,19 @@ class ActionModelLibrary(object):
 
     @staticmethod
     def EXIT_ELEVATOR(action: Action, params: list) -> Action:
+        exit_area = Area()
+        exit_area.name = ActionModelLibrary.__room_to_camel_case(params[1])
+        action.areas.append(exit_area)
         return action
+
+    @staticmethod
+    def __room_to_camel_case(area_name: str) -> str:
+        '''Based on the current naming convention of OSM, rooms are indicated
+        as [prefix]Room[suffix]; however, the task planner capitalises all
+        strings. This method simply replaces any instance of "ROOM" in the
+        area name with "Room".
+
+        @param area_name -- name of an OSM area
+
+        '''
+        return area_name.replace('ROOM', 'Room')
