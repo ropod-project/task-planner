@@ -6,6 +6,7 @@ from termcolor import colored
 
 from ropod.structs.task import TaskRequest
 from ropod.structs.action import Action
+from ropod.structs.area import Area
 
 from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.action_models import ActionModelLibrary
@@ -143,6 +144,10 @@ class MetricFFInterface(TaskPlannerInterface):
                             print(colored('-------------------------------', 'green'))
                     else:
                         action = self.process_action_str(line.strip())
+                        for i in range(len(action.areas)):
+                            floor_fluent = ('location_floor', [('loc', action.areas[i].name)])
+                            floor_number = self.kb_interface.get_fluent_value(floor_fluent)
+                            action.areas[i].floor_number = floor_number
                         plan.append(action)
                         if self.debug:
                             print(colored(line.strip(), 'yellow'))
@@ -158,6 +163,10 @@ class MetricFFInterface(TaskPlannerInterface):
                     line = line[4:]
                     processing_plan = True
                     action = self.process_action_str(line.strip())
+                    for i in range(len(action.areas)):
+                        floor_fluent = ('location_floor', [('loc', action.areas[i].name)])
+                        floor_number = self.kb_interface.get_fluent_value(floor_fluent)
+                        action.areas[i].floor_number = floor_number
                     plan.append(action)
                     if self.debug:
                         print(colored(line.strip(), 'yellow'))
