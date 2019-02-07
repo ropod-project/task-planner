@@ -282,15 +282,28 @@ class KnowledgeBaseInterface(object):
 
         '''
         fluent_value = None
-        collection = self.__get_kb_collection(self.__kb_collection_name)
 
         # we add a dummy fluent value so that we can create a fluent dictionary
         fluent_full = (fluent[0], fluent[1], -1)
         fluent_dict = Fluent.from_tuple(fluent_full).to_dict()
-        fluent_assertion = collection.find_one({'name': fluent_dict['name'],
-                                                'params': fluent_dict['params']})
+
+        collection = self.__get_kb_collection(self.__kb_collection_name)
+        fluent_cursor = collection.find({'name': fluent_dict['name']})
+        fluent_assertion = None
+        for f in fluent_cursor:
+            found = True
+            for param in f['params']:
+                if param not in fluent_dict['params']:
+                    found = False
+                    break
+            if found:
+                fluent_assertion = f
+                break
+
         if fluent_assertion:
             fluent_value = fluent_assertion['value']
+        else:
+            print(colored('Fluent {0} not found'.format(fluent_dict['name']), 'yellow'))
         return fluent_value
 
     def update_kb(self, facts_to_add: list, facts_to_remove: list) -> bool:
@@ -436,28 +449,27 @@ class KnowledgeBaseInterface(object):
         collection = db[collection_name]
         return collection
 
-    def __predicate_exists(self, predicate: dict) -> bool:
-        '''Returns True if the given predicate exists in the knowledge base.
+    def __item_exists(self, item: dict, item_type: str) -> bool:
+        '''Returns True if the given predicate or fluent exists in the knowledge base.
 
         Keyword arguments:
-        @param predicate: dict -- a dictionary representation of a Predicate object
+        @param item: dict -- a dictionary representation of a Predicate or a Fluent object
+        @param item_type: str -- an AssertionTypes string indicating whether
+                                 the item is a predicate or a fluent
 
         '''
         collection = self.__get_kb_collection(self.__kb_collection_name)
-        doc = collection.find_one(predicate)
-        return doc is not None
-
-    def __fluent_exists(self, fluent: dict) -> bool:
-        '''Returns True if the given fluent exists in the knowledge base.
-
-        Keyword arguments:
-        @param fluent: dict -- a dictionary representation of a Fluent object
-
-        '''
-        collection = self.__get_kb_collection(self.__kb_collection_name)
-        doc = collection.find_one({'name': fluent['name'],
-                                   'params': fluent['params']})
-        return doc is not None
+        item_cursor = collection.find({'name': item['name'], 'type': item_type})
+        exists = False
+        for kb_item in item_cursor:
+            exists = True
+            for param in kb_item['params']:
+                if param not in item['params']:
+                    exists = False
+                    break
+            if exists:
+                break
+        return exists
 
     def __insert_predicates(self, predicate_list: list, collection_name: pm.collection.Collection) -> bool:
         '''Inserts a list of predicates into the given collection.
@@ -470,7 +482,7 @@ class KnowledgeBaseInterface(object):
         for predicate_tuple in predicate_list:
             predicate = Predicate.from_tuple(predicate_tuple)
             predicate_dict = predicate.to_dict()
-            if not self.__predicate_exists(predicate_dict):
+            if not self.__item_exists(predicate_dict, AssertionTypes.PREDICATE):
                 collection = self.__get_kb_collection(collection_name)
                 collection.insert_one(predicate_dict)
             else:
@@ -487,7 +499,7 @@ class KnowledgeBaseInterface(object):
         for predicate_tuple in predicate_list:
             predicate = Predicate.from_tuple(predicate_tuple)
             predicate_dict = predicate.to_dict()
-            if self.__predicate_exists(predicate_dict):
+            if self.__item_exists(predicate_dict, AssertionTypes.PREDICATE):
                 collection = self.__get_kb_collection(collection_name)
                 collection.remove(predicate_dict)
             else:
@@ -506,7 +518,7 @@ class KnowledgeBaseInterface(object):
             fluent = Fluent.from_tuple(fluent_tuple)
             fluent_dict = fluent.to_dict()
             collection = self.__get_kb_collection(collection_name)
-            if not self.__fluent_exists(fluent_dict):
+            if not self.__item_exists(fluent_dict, AssertionTypes.FLUENT):
                 collection.insert_one(fluent_dict)
             else:
                 print(colored('Fluent {0} already exists; updating the value'.format(fluent.name), 'yellow'))
@@ -525,7 +537,7 @@ class KnowledgeBaseInterface(object):
         for fluent_tuple in fluent_list:
             fluent = Fluent.from_tuple(fluent_tuple)
             fluent_dict = fluent.to_dict()
-            if self.__fluent_exists(fluent_dict):
+            if self.__item_exists(fluent_dict, AssertionTypes.FLUENT):
                 collection = self.__get_kb_collection(collection_name)
                 collection.remove(fluent_dict)
             else:
