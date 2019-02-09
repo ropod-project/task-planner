@@ -42,7 +42,7 @@ The task planner is based on the following assumptions:
 
 The following main design principles were followed in the development of this package:
 * Knowledge is stored in a MongoDB database since having persistent storage of the knowledge makes it possible to recover from software failures
-* To simplify the use of domain predicates, fluents, and actions within the application, an appropriate mapping needs to be defined for these (see [`task_planner/knowledge_models.py`](`task_planner/knowledge_models.py`) for the mapping of fluents and predicates and [`task_planner/action_models.py`](`task_planner/action_models.py`) for the mapping of actions)
+* To simplify the use of domain predicates, fluents, and actions within the application, an appropriate mapping needs to be defined for these (see [`task_planner/knowledge_models.py`](task_planner/knowledge_models.py) for the mapping of fluents and predicates and [`task_planner/action_models.py`](task_planner/action_models.py) for the mapping of actions)
 * The design of the knowledge base interface is based on [`mas_knowledge_base`](https://github.com/b-it-bots/mas_knowledge_base)
 
 ## Usage examples
