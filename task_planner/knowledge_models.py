@@ -38,13 +38,13 @@ class PDDLPredicateLibrary(object):
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
-    def cart_at(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('cart', 'cart'), 1: ('loc', 'location')}
+    def load_at(params: list, obj_types: dict) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load'), 1: ('loc', 'location')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
-    def cart_in(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('cart', 'cart'), 1: ('elevator', 'elevator')}
+    def load_in(params: list, obj_types: dict) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load'), 1: ('elevator', 'elevator')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
@@ -59,7 +59,7 @@ class PDDLPredicateLibrary(object):
 
     @staticmethod
     def holding(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: 'bot', 1: 'cart'}
+        param_order = {0: 'bot', 1: 'load'}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
@@ -90,8 +90,8 @@ class PDDLFluentLibrary(object):
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
-    def cart_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('cart', 'cart')}
+    def load_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
