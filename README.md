@@ -56,11 +56,11 @@ from task_planner.knowledge_base_interface import KnowledgeBaseInterface
 kb_interface = KnowledgeBaseInterface('ropod_kb')
 ```
 
-Let's say we want to add and remove certain facts (for instance, we want to state that the robot "frank" is at the location "BRSU_L0_C1" and that the cart "mobidik_123" is not at "BRSU_L0_C1" anymore); we can specify these facts as follows:
+Let's say we want to add and remove certain facts (for instance, we want to state that the robot "frank" is at the location "BRSU_L0_C1" and that the load "mobidik_123" is not at "BRSU_L0_C1" anymore); we can specify these facts as follows:
 
 ```
 facts_to_add = [('robot_at', [('bot', 'frank'), ('loc', 'BRSU_L0_C1')])]
-facts_to_remove = [('cart_at', [('cart', 'mobidik_123'), ('loc', 'BRSU_L0_C1')])]
+facts_to_remove = [('load_at', [('load', 'mobidik_123'), ('loc', 'BRSU_L0_C1')])]
 ```
 
 Note that we represent a predicate as a tuple in which the first entry is the predicate name and the second is a list of predicate parameters ("name" and "value" pairs).
@@ -115,13 +115,13 @@ planner = MetricFFInterface('ropod_kb', domain_file, planner_cmd, plan_file_path
 
 # creating a task request
 task_request = TaskRequest()
-task_request.cart_id = 'mobidik_123'
+task_request.load_id = 'mobidik_123'
 task_request.delivery_pose.id = 'BRSU_L0_C0'
 
 robot_name = 'frank'
 
 # creating the list of task goals
-task_goals = [('cart_at', [('cart', task_request.cart_id),
+task_goals = [('load_at', [('load', task_request.load_id),
                            ('loc', task_request.delivery_pose.id)]),
               ('empty_gripper', [('bot', robot_name)])]
 

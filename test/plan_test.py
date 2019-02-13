@@ -17,11 +17,11 @@ with open('config/planner_config.yaml', 'r') as config_file:
 planner = MetricFFInterface('ropod_kb', domain_file, planner_cmd, plan_file_path, debug=True)
 
 task_request = TaskRequest()
-task_request.cart_id = 'mobidik_123'
+task_request.load_id = 'mobidik_123'
 task_request.delivery_pose.id = 'BRSU_L0_C0'
 
 robot_name = 'frank'
-task_goals = [('cart_at', [('cart', task_request.cart_id),
+task_goals = [('load_at', [('load', task_request.load_id),
                            ('loc', task_request.delivery_pose.id)]),
               ('empty_gripper', [('bot', robot_name)])]
 plan_found, plan = planner.plan(task_request, robot_name, task_goals)

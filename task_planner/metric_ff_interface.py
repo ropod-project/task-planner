@@ -41,7 +41,7 @@ class MetricFFInterface(TaskPlannerInterface):
             subprocess.run(planner_cmd_elements, stdout=plan_file)
             print(colored('[task_planner] Planning finished', 'green'))
 
-        plan_found, plan = self.parse_plan(plan_file_abs_path, task_request.cart_type, robot)
+        plan_found, plan = self.parse_plan(plan_file_abs_path, task_request.load_type, robot)
         return plan_found, plan
 
     def generate_problem_file(self, predicate_assertions: list,
