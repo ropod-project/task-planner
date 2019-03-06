@@ -12,6 +12,7 @@ from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.action_models import ActionModelLibrary
 from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary
 
+
 class MetricFFInterface(TaskPlannerInterface):
     def __init__(self, kb_database_name, domain_file,
                  planner_cmd, plan_file_path, debug=False):

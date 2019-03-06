@@ -7,6 +7,7 @@ class AssertionTypes(object):
     PREDICATE = 'predicate'
     FLUENT = 'fluent'
 
+
 class PredicateParams(object):
     '''An object representing a predicate parameter (variable name and ground value).
 
@@ -60,6 +61,7 @@ class PredicateParams(object):
         params.name = dict_params['name']
         params.value = dict_params['value']
         return params
+
 
 class Predicate(object):
     '''An object representing a predicate (predicate name and list of ground values).
@@ -131,6 +133,7 @@ class Predicate(object):
             params = PredicateParams.from_dict(dict_params)
             predicate.params.append(params)
         return predicate
+
 
 class Fluent(object):
     '''An object representing a fluent (fluent name, list of ground values, and fluent value).
@@ -205,6 +208,7 @@ class Fluent(object):
             params = PredicateParams.from_dict(dict_params)
             fluent.params.append(params)
         return fluent
+
 
 class KnowledgeBaseInterface(object):
     '''Defines an interface for interacting with a robot knowledge base.
