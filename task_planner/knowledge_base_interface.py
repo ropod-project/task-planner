@@ -1,10 +1,12 @@
 from typing import Tuple
 import pymongo as pm
-from termcolor import colored
+import logging
+
 
 class AssertionTypes(object):
     PREDICATE = 'predicate'
     FLUENT = 'fluent'
+
 
 class PredicateParams(object):
     '''An object representing a predicate parameter (variable name and ground value).
@@ -59,6 +61,7 @@ class PredicateParams(object):
         params.name = dict_params['name']
         params.value = dict_params['value']
         return params
+
 
 class Predicate(object):
     '''An object representing a predicate (predicate name and list of ground values).
@@ -130,6 +133,7 @@ class Predicate(object):
             params = PredicateParams.from_dict(dict_params)
             predicate.params.append(params)
         return predicate
+
 
 class Fluent(object):
     '''An object representing a fluent (fluent name, list of ground values, and fluent value).
@@ -205,6 +209,7 @@ class Fluent(object):
             fluent.params.append(params)
         return fluent
 
+
 class KnowledgeBaseInterface(object):
     '''Defines an interface for interacting with a robot knowledge base.
 
@@ -219,6 +224,7 @@ class KnowledgeBaseInterface(object):
         self.__kb_database_name = __kb_database_name
         self.__kb_collection_name = 'knowledge_base'
         self.__goal_collection_name = 'goals'
+        self.logger = logging.getLogger('task.planner.kb.interface')
 
     def get_predicate_names(self) -> list:
         '''Returns a list of all stored predicate names in the knowledge base.
@@ -303,7 +309,7 @@ class KnowledgeBaseInterface(object):
         if fluent_assertion:
             fluent_value = fluent_assertion['value']
         else:
-            print(colored('Fluent {0} not found'.format(fluent_dict['name']), 'yellow'))
+            self.logger.warning('Fluent %s not found', fluent_dict['name'])
         return fluent_value
 
     def update_kb(self, facts_to_add: list, facts_to_remove: list) -> bool:
@@ -345,7 +351,7 @@ class KnowledgeBaseInterface(object):
             self.__insert_predicates(fact_list, self.__kb_collection_name)
             return True
         except Exception as exc:
-            print(colored('[insert_facts] Facts could not be inserted: {0}'.format(exc), 'red'))
+            self.logger.error('[insert_facts] Facts could not be inserted: ', exc_info=True)
             return False
 
     def remove_facts(self, fact_list: list) -> bool:
@@ -362,7 +368,7 @@ class KnowledgeBaseInterface(object):
             self.__remove_predicates(fact_list, self.__kb_collection_name)
             return True
         except Exception as exc:
-            print(colored('[remove_facts] Facts could not be removed: {0}'.format(exc), 'red'))
+            self.logger.error('[remove_facts] Facts could not be removed: ', exc_info=True)
             return False
 
     def insert_fluents(self, fluent_list: list) -> bool:
@@ -381,7 +387,7 @@ class KnowledgeBaseInterface(object):
             self.__insert_fluents(fluent_list, self.__kb_collection_name)
             return True
         except Exception as exc:
-            print(colored('[insert_fluents] Fluents could not be inserted: {0}'.format(exc), 'red'))
+            self.logger.error('[insert_fluents] Fluents could not be inserted:', exc_info=True)
             return False
 
     def remove_fluents(self, fluent_list: list) -> bool:
@@ -400,7 +406,7 @@ class KnowledgeBaseInterface(object):
             self.__remove_fluents(fluent_list, self.__kb_collection_name)
             return True
         except Exception as exc:
-            print(colored('[remove_fluents] Fluents could not be removed: {0}'.format(exc), 'red'))
+            self.logger.error('[remove_fluents] Fluents could not be removed: ', exc_info=True)
             return False
 
     def insert_goals(self, goal_list: list) -> bool:
@@ -417,7 +423,7 @@ class KnowledgeBaseInterface(object):
             self.__insert_predicates(goal_list, self.__goal_collection_name)
             return True
         except Exception as exc:
-            print(colored('[insert_goals] Goals could not be inserted: {0}'.format(exc), 'red'))
+            self.logger.error('[insert_goals] Goals could not be inserted: ', exc_info=True)
             return False
 
     def remove_goals(self, goal_list: list) -> bool:
@@ -434,7 +440,7 @@ class KnowledgeBaseInterface(object):
             self.__remove_predicates(goal_list, self.__goal_collection_name)
             return True
         except Exception as exc:
-            print(colored('[remove_goals] Goals could not be removed: {0}'.format(exc), 'red'))
+            self.logger.error('[remove_goals] Goals could not be removed: ', exc_info=True)
             return False
 
     def __get_kb_collection(self, collection_name: str) -> pm.collection.Collection:
@@ -486,7 +492,7 @@ class KnowledgeBaseInterface(object):
                 collection = self.__get_kb_collection(collection_name)
                 collection.insert_one(predicate_dict)
             else:
-                print(colored('Predicate {0} already exists'.format(predicate.name), 'yellow'))
+                self.logger.warning('Predicate %s already exists', predicate.name)
 
     def __remove_predicates(self, predicate_list: list, collection_name: pm.collection.Collection) -> bool:
         '''Removes a list of predicates from the given collection.
@@ -503,7 +509,7 @@ class KnowledgeBaseInterface(object):
                 collection = self.__get_kb_collection(collection_name)
                 collection.remove(predicate_dict)
             else:
-                print(colored('Predicate {0} does not exist'.format(predicate.name), 'yellow'))
+                self.logger.warning('Predicate %s does not exist', predicate.name)
 
     def __insert_fluents(self, fluent_list: list, collection_name: pm.collection.Collection) -> bool:
         '''Inserts a list of fluents into the given collection.
@@ -521,7 +527,7 @@ class KnowledgeBaseInterface(object):
             if not self.__item_exists(fluent_dict, AssertionTypes.FLUENT):
                 collection.insert_one(fluent_dict)
             else:
-                print(colored('Fluent {0} already exists; updating the value'.format(fluent.name), 'yellow'))
+                self.logger.warning('Fluent %s already exists; updating the value', fluent.name)
                 collection.replace_one({'name': fluent_dict['name'],
                                         'params': fluent_dict['params']},
                                        fluent_dict)
@@ -541,4 +547,4 @@ class KnowledgeBaseInterface(object):
                 collection = self.__get_kb_collection(collection_name)
                 collection.remove(fluent_dict)
             else:
-                print(colored('Fluent {0} does not exist; nothing to remove'.format(fluent.name), 'yellow'))
+                self.logger.warning('Fluent %s does not exist; nothing to remove', fluent.name)

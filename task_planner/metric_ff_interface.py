@@ -2,7 +2,7 @@ from os.path import join
 import uuid
 import subprocess
 from typing import Tuple
-from termcolor import colored
+import logging
 
 from ropod.structs.task import TaskRequest
 from ropod.structs.action import Action
@@ -12,12 +12,14 @@ from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.action_models import ActionModelLibrary
 from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary
 
+
 class MetricFFInterface(TaskPlannerInterface):
     def __init__(self, kb_database_name, domain_file,
                  planner_cmd, plan_file_path, debug=False):
         super(MetricFFInterface, self).__init__(kb_database_name, domain_file,
                                                 planner_cmd, plan_file_path,
                                                 debug)
+        self.logger = logging.getLogger('task.planner')
 
     def plan(self, task_request: TaskRequest, robot: str, task_goals: list=None):
         # TODO: check if there are already goals in the knowledge base and,
@@ -26,7 +28,7 @@ class MetricFFInterface(TaskPlannerInterface):
         kb_predicate_assertions = self.kb_interface.get_predicate_assertions()
         kb_fluent_assertions = self.kb_interface.get_fluent_assertions()
 
-        print(colored('[task_planner] Generating problem file', 'green'))
+        self.logger.info('Generating problem file')
         problem_file = self.generate_problem_file(kb_predicate_assertions,
                                                   kb_fluent_assertions,
                                                   task_goals)
@@ -36,10 +38,10 @@ class MetricFFInterface(TaskPlannerInterface):
 
         plan_file_name = 'plan_{0}.txt'.format(str(uuid.uuid4()))
         plan_file_abs_path = join(self.plan_file_path, plan_file_name)
-        print(colored('[task_planner] Planning task...', 'green'))
+        self.logger.info('Planning task...')
         with open(plan_file_abs_path, 'w') as plan_file:
             subprocess.run(planner_cmd_elements, stdout=plan_file)
-            print(colored('[task_planner] Planning finished', 'green'))
+            self.logger.info('Planning finished')
 
         plan_found, plan = self.parse_plan(plan_file_abs_path, task_request.load_type, robot)
         return plan_found, plan
@@ -116,7 +118,7 @@ class MetricFFInterface(TaskPlannerInterface):
         # )
         problem_file_name = 'problem_{0}.txt'.format(str(uuid.uuid4()))
         problem_file_abs_path = join(self.plan_file_path, problem_file_name)
-        print(colored('[task_planner] Generating planning problem...', 'green'))
+        self.logger.info('Generating planning problem...')
         with open(problem_file_abs_path, 'w') as problem_file:
             header = '(define (problem ropod)\n'
             header += '    (:domain {0})\n'.format(self.domain_name)
@@ -140,8 +142,7 @@ class MetricFFInterface(TaskPlannerInterface):
                 if processing_plan:
                     if line == '\n':
                         processing_plan = False
-                        if self.debug:
-                            print(colored('-------------------------------', 'green'))
+                        self.logger.debug('-------------------------------')
                     else:
                         action = self.process_action_str(line.strip())
                         for i in range(len(action.areas)):
@@ -149,15 +150,14 @@ class MetricFFInterface(TaskPlannerInterface):
                             floor_number = self.kb_interface.get_fluent_value(floor_fluent)
                             action.areas[i].floor_number = floor_number
                         plan.append(action)
-                        if self.debug:
-                            print(colored(line.strip(), 'yellow'))
+                        self.logger.debug(line.strip())
 
                 if 'found legal plan' in line.lower():
                     plan_found = True
-                    print(colored('[task_planner] Plan for task {0} and robot {1} found'.format(task, robot), 'green'))
-                    if self.debug:
-                        print(colored('[task_planner] Action sequence:', 'green'))
-                        print(colored('-------------------------------', 'green'))
+                    self.logger.info('Plan for task %s and robot %s found', task, robot)
+
+                    self.logger.debug('Action sequence:')
+                    self.logger.debug('-------------------------------')
 
                 if 'step' in line.lower():
                     line = line[4:]
@@ -168,11 +168,10 @@ class MetricFFInterface(TaskPlannerInterface):
                         floor_number = self.kb_interface.get_fluent_value(floor_fluent)
                         action.areas[i].floor_number = floor_number
                     plan.append(action)
-                    if self.debug:
-                        print(colored(line.strip(), 'yellow'))
+                    self.logger.debug(line.strip())
 
         if not plan_found:
-            print(colored('[task_planner] Plan for task {0} and robot {1} not found'.format(task, robot), 'red'))
+            self.logger.error('Plan for task %s and robot %s not found', task, robot)
         return plan_found, plan
 
     def process_action_str(self, action_line: str) -> Action:

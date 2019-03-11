@@ -1,5 +1,6 @@
 from typing import Tuple
 
+
 class PDDLKnowledgeUtils(object):
     @staticmethod
     def get_ordered_param_list(params: list, param_order: dict, obj_types: dict) -> Tuple[list, dict]:
@@ -20,6 +21,7 @@ class PDDLKnowledgeUtils(object):
                         updated_obj_types[param_type].append(param.value)
                     break
         return param_list, updated_obj_types
+
 
 class PDDLPredicateLibrary(object):
     @staticmethod

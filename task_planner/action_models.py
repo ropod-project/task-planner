@@ -2,6 +2,7 @@ import uuid
 from ropod.structs.action import Action
 from ropod.structs.area import Area
 
+
 class ActionModelLibrary(object):
     @staticmethod
     def get_action_model(action_name: str, action_params: list) -> Action:

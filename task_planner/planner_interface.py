@@ -4,6 +4,7 @@ from ropod.structs.task import TaskRequest
 from ropod.structs.action import Action
 from task_planner.knowledge_base_interface import KnowledgeBaseInterface
 
+
 class TaskPlannerInterface(object):
     def __init__(self, kb_database_name, domain_file, planner_cmd, plan_file_path, debug=False):
         self.kb_interface = KnowledgeBaseInterface(kb_database_name)
