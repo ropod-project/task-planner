@@ -1,2 +1,8 @@
 *.pyc
 *.egg-info
+
+# plan files
+config/plan_*
+
+# problem files
+config/problem_*
