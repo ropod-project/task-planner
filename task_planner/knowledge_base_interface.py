@@ -597,6 +597,7 @@ class KnowledgeBaseInterface(object):
         @param collection_name: pm.collection.Collection -- a MongoDB collection
 
         '''
+        collection = self.__get_kb_collection(collection_name)
         for fluent_tuple in fluent_list:
             fluent = Fluent.from_tuple(fluent_tuple)
             fluent_dict = fluent.to_dict()
