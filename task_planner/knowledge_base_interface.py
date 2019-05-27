@@ -60,6 +60,12 @@ class PredicateParams(object):
         params.value = dict_params['value']
         return params
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return "PredicateParams(" + str(self.to_dict()) + ")"
+
 class Predicate(object):
     '''An object representing a predicate (predicate name and list of ground values).
 
@@ -130,6 +136,20 @@ class Predicate(object):
             params = PredicateParams.from_dict(dict_params)
             predicate.params.append(params)
         return predicate
+
+    def __str__(self) -> str:
+        string = "Predicate(\n" 
+        string += '\t' + 'name:' + str(self.name) + '\n'
+        string += '\t' + 'type:' + str(AssertionTypes.PREDICATE) + '\n'
+        string += '\t' + 'params:[' + '\n'
+        for param in self.params:
+            string += '\t\t' + str(param) + '\n'
+        string += '\t' + ']' + '\n'
+        string += ")"
+        return string
+
+    def __repr__(self) -> str:
+        return "Predicate(" + str(self.to_dict()) + ")"
 
 class Fluent(object):
     '''An object representing a fluent (fluent name, list of ground values, and fluent value).
@@ -204,6 +224,21 @@ class Fluent(object):
             params = PredicateParams.from_dict(dict_params)
             fluent.params.append(params)
         return fluent
+
+    def __str__(self) -> str:
+        string = "Fluent(\n" 
+        string += '\t' + 'name:' + str(self.name) + '\n'
+        string += '\t' + 'value:' + str(self.value) + '\n'
+        string += '\t' + 'type:' + str(AssertionTypes.FLUENT) + '\n'
+        string += '\t' + 'params:[' + '\n'
+        for param in self.params:
+            string += '\t\t' + str(param) + '\n'
+        string += '\t' + ']' + '\n'
+        string += ")"
+        return string
+
+    def __repr__(self) -> str:
+        return "Fluent(" + str(self.to_dict()) + ")"
 
 class KnowledgeBaseInterface(object):
     '''Defines an interface for interacting with a robot knowledge base.
