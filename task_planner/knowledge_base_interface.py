@@ -1,5 +1,6 @@
 from typing import Tuple
 import pymongo as pm
+from bson.objectid import ObjectId
 from termcolor import colored
 
 class AssertionTypes(object):
@@ -34,6 +35,11 @@ class PredicateParams(object):
         dict_params['name'] = self.name
         dict_params['value'] = self.value
         return dict_params
+
+    def to_tuple(self) -> Tuple[str, str]:
+        '''Convert object to tuple(str, str)
+        '''
+        return (self.name, self.value)
 
     @staticmethod
     def from_tuple(tuple_params: Tuple[str, str]):
@@ -101,6 +107,13 @@ class Predicate(object):
             dict_params = param_data.to_dict()
             dict_predicate['params'].append(dict_params)
         return dict_predicate
+
+    def to_tuple(self) -> Tuple[str, list]:
+        '''Convert object to tuple containing 2 elements
+        name -- string
+        params -- list of tuple(str, str)
+        '''
+        return (self.name, [param.to_tuple() for param in self.params])
 
     @staticmethod
     def from_tuple(tuple_predicate: Tuple[str, list]):
@@ -188,6 +201,14 @@ class Fluent(object):
             dict_params = param_data.to_dict()
             dict_fluent['params'].append(dict_params)
         return dict_fluent
+
+    def to_tuple(self) -> Tuple[str, list, str]:
+        '''Convert the object to tuple for with 3 elements namely
+        name -- string
+        params -- list of tuple(str, str)
+        value -- int or string
+        '''
+        return (self.name, [param.to_tuple() for param in self.params], self.value)
 
     @staticmethod
     def from_tuple(tuple_fluent: tuple):
@@ -484,7 +505,7 @@ class KnowledgeBaseInterface(object):
         collection = db[collection_name]
         return collection
 
-    def __item_exists(self, item: dict, item_type: str, collection_name:str) -> bool:
+    def __item_exists(self, item: dict, item_type: str, collection_name: str) -> ObjectId:
         '''Returns True if the given predicate or fluent exists in the knowledge base.
 
         Keyword arguments:
@@ -496,19 +517,19 @@ class KnowledgeBaseInterface(object):
         collection = self.__get_kb_collection(collection_name)
         item_cursor = collection.find({'name': item['name'], 'type': item_type})
         exists = False
-        print("before for loop")
+        object_id = None
         for kb_item in item_cursor:
-            print("inside for loop")
             exists = True
             for param in kb_item['params']:
                 if param not in item['params']:
                     exists = False
                     break
             if exists:
+                object_id = kb_item['_id']
                 break
-        return exists
+        return object_id
 
-    def __insert_predicates(self, predicate_list: list, collection_name: pm.collection.Collection) -> bool:
+    def __insert_predicates(self, predicate_list: list, collection_name: str) -> bool:
         '''Inserts a list of predicates into the given collection.
 
         Keyword arguments:
@@ -525,7 +546,7 @@ class KnowledgeBaseInterface(object):
             else:
                 print(colored('Predicate {0} already exists'.format(predicate.name), 'yellow'))
 
-    def __remove_predicates(self, predicate_list: list, collection_name: pm.collection.Collection) -> bool:
+    def __remove_predicates(self, predicate_list: list, collection_name: str) -> bool:
         '''Removes a list of predicates from the given collection.
 
         Keyword arguments:
@@ -533,17 +554,17 @@ class KnowledgeBaseInterface(object):
         @param collection_name: pm.collection.Collection -- a MongoDB collection
 
         '''
+        collection = self.__get_kb_collection(collection_name)
         for predicate_tuple in predicate_list:
             predicate = Predicate.from_tuple(predicate_tuple)
             predicate_dict = predicate.to_dict()
-            print(predicate_dict)
-            if self.__item_exists(predicate_dict, AssertionTypes.PREDICATE, collection_name):
-                collection = self.__get_kb_collection(collection_name)
-                collection.delete_one(predicate_dict)
+            object_id = self.__item_exists(predicate_dict, AssertionTypes.PREDICATE, collection_name)
+            if object_id:
+                collection.delete_one({'_id': object_id})
             else:
                 print(colored('Predicate {0} does not exist'.format(predicate.name), 'yellow'))
 
-    def __insert_fluents(self, fluent_list: list, collection_name: pm.collection.Collection) -> bool:
+    def __insert_fluents(self, fluent_list: list, collection_name: str) -> bool:
         '''Inserts a list of fluents into the given collection.
         If a fluent already exists, its value is updated.
 
@@ -564,7 +585,7 @@ class KnowledgeBaseInterface(object):
                                         'params': fluent_dict['params']},
                                        fluent_dict)
 
-    def __remove_fluents(self, fluent_list: list, collection_name: pm.collection.Collection) -> bool:
+    def __remove_fluents(self, fluent_list: list, collection_name: str) -> bool:
         '''Removes a list of fluents from the given collection.
 
         Keyword arguments:
@@ -575,8 +596,8 @@ class KnowledgeBaseInterface(object):
         for fluent_tuple in fluent_list:
             fluent = Fluent.from_tuple(fluent_tuple)
             fluent_dict = fluent.to_dict()
-            if self.__item_exists(fluent_dict, AssertionTypes.FLUENT, collection_name):
-                collection = self.__get_kb_collection(collection_name)
-                collection.remove(fluent_dict)
+            object_id = self.__item_exists(fluent_dict, AssertionTypes.FLUENT, collection_name)
+            if object_id:
+                collection.delete_one({'_id': object_id})
             else:
                 print(colored('Fluent {0} does not exist; nothing to remove'.format(fluent.name), 'yellow'))
