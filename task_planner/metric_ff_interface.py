@@ -66,7 +66,7 @@ class MetricFFInterface(TaskPlannerInterface):
 
     def generate_problem_file(self, predicate_assertions: list,
                               fluent_assertions: list,
-                              task_goals: list) -> str:
+                              task_goals: List[Predicate]) -> str:
         obj_types = {}
         init_state_str = ''
 
