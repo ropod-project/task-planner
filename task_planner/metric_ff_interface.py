@@ -1,7 +1,7 @@
 from os.path import join
 import uuid
 import subprocess
-from typing import Tuple
+from typing import Tuple, List
 import logging
 
 from ropod.structs.task import TaskRequest
