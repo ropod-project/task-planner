@@ -1,7 +1,7 @@
 from os.path import join
 import uuid
 import subprocess
-from typing import Tuple
+from typing import Tuple, List
 import logging
 
 from ropod.structs.task import TaskRequest
@@ -9,6 +9,7 @@ from ropod.structs.action import Action
 from ropod.structs.area import Area
 
 from task_planner.planner_interface import TaskPlannerInterface
+from task_planner.knowledge_base_interface import Predicate
 from task_planner.action_models import ActionModelLibrary
 from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary
 
@@ -22,8 +23,25 @@ class MetricFFInterface(TaskPlannerInterface):
         self.logger = logging.getLogger('task.planner')
 
     def plan(self, task_request: TaskRequest, robot: str, task_goals: list=None):
+        '''
+        task_goals can be a list of any of the following variation of Predicate object
+            - Object itself
+            - tuple
+            - dict
+        '''
         # TODO: check if there are already goals in the knowledge base and,
         # if yes, add them to the task_goals list
+    
+        predicate_task_goals = []
+        for task_goal in task_goals:
+            if isinstance(task_goal, Predicate):
+                predicate_task_goals.append(task_goal)
+            elif isinstance(task_goal, tuple):
+                predicate_task_goals.append(Predicate.from_tuple(task_goal))
+            elif isinstance(task_goal, dict):
+                predicate_task_goals.append(Predicate.from_dict(task_goal))
+            else:
+                raise Exception('Invalid type to task_goal encountered')
 
         kb_predicate_assertions = self.kb_interface.get_predicate_assertions()
         kb_fluent_assertions = self.kb_interface.get_fluent_assertions()
@@ -31,7 +49,7 @@ class MetricFFInterface(TaskPlannerInterface):
         self.logger.info('Generating problem file')
         problem_file = self.generate_problem_file(kb_predicate_assertions,
                                                   kb_fluent_assertions,
-                                                  task_goals)
+                                                  predicate_task_goals)
 
         planner_cmd = self.planner_cmd.replace('PROBLEM', problem_file)
         planner_cmd_elements = planner_cmd.split()
@@ -48,7 +66,7 @@ class MetricFFInterface(TaskPlannerInterface):
 
     def generate_problem_file(self, predicate_assertions: list,
                               fluent_assertions: list,
-                              task_goals: list) -> str:
+                              task_goals: List[Predicate]) -> str:
         obj_types = {}
         init_state_str = ''
 
@@ -60,6 +78,7 @@ class MetricFFInterface(TaskPlannerInterface):
                                                                                           obj_types)
             assertion_str = '        ({0} {1})\n'.format(assertion.name, ' '.join(ordered_param_list))
             init_state_str += assertion_str
+
 
         # we generate strings from the fluent assertions of the form
         # (= (fluent_name param_1 param_2 ... param_n) fluent_value)
@@ -98,9 +117,10 @@ class MetricFFInterface(TaskPlannerInterface):
         #     )
         # )
         goal_str = ''
-        for goal_predicate, goal_params in task_goals:
+        for task_goal in task_goals:
+            goal_predicate, goal_params = task_goal.name, task_goal.params
             goal_str += '            ({0} {1})\n'.format(goal_predicate,
-                                                         ' '.join([param[1] for param in goal_params]))
+                                                         ' '.join([param.value for param in goal_params]))
         goal_str = '    (:goal\n        (and\n{0}        )\n    )\n'.format(goal_str)
 
         # we finally write the problem file, which will be in the format
