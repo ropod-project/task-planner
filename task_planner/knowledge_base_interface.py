@@ -1,7 +1,6 @@
 from typing import Tuple
 import pymongo as pm
 from bson.objectid import ObjectId
-from termcolor import colored
 import logging
 
 
