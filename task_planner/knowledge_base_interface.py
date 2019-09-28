@@ -153,7 +153,7 @@ class Predicate(object):
         return predicate
 
     def __str__(self) -> str:
-        string = "Predicate(\n" 
+        string = "Predicate(\n"
         string += '\t' + 'name:' + str(self.name) + '\n'
         string += '\t' + 'type:' + str(AssertionTypes.PREDICATE) + '\n'
         string += '\t' + 'params:[' + '\n'
@@ -249,7 +249,7 @@ class Fluent(object):
         return fluent
 
     def __str__(self) -> str:
-        string = "Fluent(\n" 
+        string = "Fluent(\n"
         string += '\t' + 'name:' + str(self.name) + '\n'
         string += '\t' + 'value:' + str(self.value) + '\n'
         string += '\t' + 'type:' + str(AssertionTypes.FLUENT) + '\n'
@@ -424,6 +424,31 @@ class KnowledgeBaseInterface(object):
             self.logger.error('[remove_facts] Facts could not be removed: ', exc_info=True)
             return False
 
+    def update_predicate(self, predicate: Tuple[str, list]) -> bool:
+        '''Updates the given predicate in the knowledge base. The predicate
+        will be inserted if it does not already exist. Returns True if
+        the update is successful; returns False in case of any exceptions.
+
+        Keyword arguments:
+        @param predicate: Tuple[str, list] -- a tuple with two entries, the first representing
+                                              the name of the predicate and the second a list of
+                                              ("name", "value") pairs for the predicate parameters
+
+        '''
+        predicate_name = predicate[0]
+        try:
+            predicate_obj = Predicate.from_tuple(predicate)
+            predicate_dict = predicate_obj.to_dict()
+
+            collection = self.__get_kb_collection(self.__kb_collection_name)
+            collection.replace_one({'name': predicate_name,
+                                    'type': AssertionTypes.PREDICATE},
+                                   predicate_dict, upsert=True)
+            return True
+        except Exception as exc:
+            self.logger.error('[update_predicate] Predicate {0} could not be updated'.format(predicate_name), exc_info=True)
+            return False
+
     def insert_fluents(self, fluent_list: list) -> bool:
         '''Inserts a list of fluents into the knowledge base.
 
@@ -460,6 +485,32 @@ class KnowledgeBaseInterface(object):
             return True
         except Exception as exc:
             self.logger.error('[remove_fluents] Fluents could not be removed: ', exc_info=True)
+            return False
+
+    def update_fluent(self, fluent: Tuple[str, list, int]) -> bool:
+        '''Updates the given fluent in the knowledge base. The fluent
+        will be inserted if it does not already exist. Returns True if
+        the update is successful; returns False in case of any exceptions.
+
+        Keyword arguments:
+        @param fluent: Tuple[str, list, int] -- a tuple with three entries, the first representing
+                                                the name of the predicate, the second a list of
+                                                ("name", "value") pairs for the fluent parameters,
+                                                and the third the fluent value
+
+        '''
+        fluent_name = fluent[0]
+        try:
+            fluent_obj = Fluent.from_tuple(fluent)
+            fluent_dict = fluent_obj.to_dict()
+
+            collection = self.__get_kb_collection(self.__kb_collection_name)
+            collection.replace_one({'name': fluent_name,
+                                    'type': AssertionTypes.FLUENT},
+                                   fluent_dict, upsert=True)
+            return True
+        except Exception as exc:
+            self.logger.error('[update_fluent] Fluent {0} could not be updated'.format(fluent_name), exc_info=True)
             return False
 
     def insert_goals(self, goal_list: list) -> bool:

@@ -175,8 +175,10 @@ The following methods are exposed by the interface:
 * `update_kb`: Inserts a list of facts (predicate assertions) into the knowledge base and removes a list of facts (also predicate assertions) from it. The predicate assertions are expected to be passed as tuples
 * `insert_facts`: Inserts a list of facts (predicate assertions) into the knowledge base. The facts are expected to be passed as tuples
 * `remove_facts`: Removes a list of facts (predicate assertions) from the knowledge base. The facts are expected to be passed as tuples
+* `update_predicate`: Updates a given predicate. The predicate is expected to be passed as a tuple
 * `insert_fluents`: Inserts a list of fluents (fluent assertions) into the knowledge base. The fluents are expected to be passed as tuples
 * `remove_fluents`: Removes a list of fluents (fluent assertions) from the knowledge base. The fluents are expected to be passed as tuples
+* `update_fluent`: Updates a given fluent. The fluent is expected to be passed as a tuple
 * `insert_goals`: Inserts a list of goals (predicate assertions) into the knowledge base. The goals are expected to be passed as tuples
 * `remove_goals`: Removes a list of goal (predicate assertions) from the knowledge base. The goals are expected to be passed as tuples
 
