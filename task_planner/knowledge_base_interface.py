@@ -273,7 +273,7 @@ class KnowledgeBaseInterface(object):
     @contact aleksandar.mitrevski@h-brs.de
 
     '''
-    def __init__(self, __kb_database_name):
+    def __init__(self, __kb_database_name='robot_store'):
         self.__kb_database_name = __kb_database_name
         self.__kb_collection_name = 'knowledge_base'
         self.__goal_collection_name = 'goals'
