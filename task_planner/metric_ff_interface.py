@@ -31,7 +31,7 @@ class MetricFFInterface(TaskPlannerInterface):
         '''
         # TODO: check if there are already goals in the knowledge base and,
         # if yes, add them to the task_goals list
-    
+
         predicate_task_goals = []
         for task_goal in task_goals:
             if isinstance(task_goal, Predicate):
@@ -80,15 +80,22 @@ class MetricFFInterface(TaskPlannerInterface):
             init_state_str += assertion_str
 
 
-        # we generate strings from the fluent assertions of the form
-        # (= (fluent_name param_1 param_2 ... param_n) fluent_value)
+        # for numeric fluents, we generate strings  of the form
+        # (= (fluent_name param_1 param_2 ... param_n) fluent_value); otherwise,
+        # we generate strings just like for predicate assertions
         for assertion in fluent_assertions:
-            ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
-                                                                                       assertion.params,
-                                                                                       obj_types)
-            assertion_str = '        (= ({0} {1}) {2})\n'.format(assertion.name,
-                                                                 ' '.join(ordered_param_list),
-                                                                 assertion.value)
+            if hasattr(PDDLPredicateLibrary, assertion.name):
+                ordered_param_list, obj_types = PDDLPredicateLibrary.get_assertion_param_list(assertion.name,
+                                                                                              assertion.params,
+                                                                                              obj_types)
+                assertion_str = '        ({0} {1})\n'.format(assertion.name, ' '.join(ordered_param_list))
+            else:
+                ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
+                                                                                           assertion.params,
+                                                                                           obj_types)
+                assertion_str = '        (= ({0} {1}) {2})\n'.format(assertion.name,
+                                                                     ' '.join(ordered_param_list),
+                                                                     assertion.value)
             init_state_str += assertion_str
 
         # we combine the assertion strings into an initial state string of the form
