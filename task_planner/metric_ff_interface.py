@@ -88,7 +88,9 @@ class MetricFFInterface(TaskPlannerInterface):
                 ordered_param_list, obj_types = PDDLPredicateLibrary.get_assertion_param_list(assertion.name,
                                                                                               assertion.params,
                                                                                               obj_types)
-                assertion_str = '        ({0} {1})\n'.format(assertion.name, ' '.join(ordered_param_list))
+                assertion_str = '        ({0} {1} {2})\n'.format(assertion.name,
+                                                                 ' '.join(ordered_param_list),
+                                                                 assertion.value)
             else:
                 ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
                                                                                            assertion.params,
