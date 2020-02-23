@@ -1,20 +1,13 @@
 (define (domain hospital-transportation)
 
-    (:requirements :typing :conditional-effects :fluents)
+    (:requirements :typing :conditional-effects)
 
     (:types
         location
         robot
         load
         elevator
-    )
-
-    (:functions
-        (robot_floor ?bot - robot) - number
-        (location_floor ?loc - location) - number
-        (load_floor ?load - load) - number
-        (elevator_floor ?elevator - elevator) - number
-        (destination_floor ?elevator - elevator) - number
+        floor
     )
 
     (:predicates
@@ -27,13 +20,21 @@
         (holding ?bot - robot ?load - load)
         (requested ?bot - robot ?elevator - elevator)
         (arrived ?elevator - elevator)
+
+        (robot_floor ?bot - robot ?floor - floor)
+        (location_floor ?loc - location ?floor - floor)
+        (load_floor ?load - load ?floor - floor)
+        (elevator_floor ?elevator - elevator ?floor - floor)
+        (destination_floor ?elevator - elevator ?floor - floor)
     )
 
     (:action GOTO
-        :parameters (?bot - robot ?from ?to - location ?load - load)
+        :parameters (?bot - robot ?from ?to - location ?floor_from ?floor_to - floor ?load - load)
         :precondition (and
             (robot_at ?bot ?from)
-            (= (location_floor ?from) (location_floor ?to))
+            (location_floor ?from ?floor_from)
+            (location_floor ?to ?floor_to)
+            (= ?floor_from ?floor_to)
             (forall (?elevator - elevator)
                 (and
                     (not (requested ?bot ?elevator))
@@ -54,12 +55,14 @@
     )
 
     (:action DOCK
-        :parameters (?bot - robot ?load - load ?loc - location)
+        :parameters (?bot - robot ?load - load ?bot_floor ?loc_floor - floor ?loc - location)
         :precondition (and
             (robot_at ?bot ?loc)
             (load_at ?load ?loc)
             (empty_gripper ?bot)
-            (= (robot_floor ?bot) (location_floor ?loc))
+            (robot_floor ?bot ?bot_floor)
+            (location_floor ?loc ?loc_floor)
+            (= ?bot_floor ?loc_floor)
         )
         :effect (and
             (not (empty_gripper ?bot))
@@ -79,14 +82,23 @@
     )
 
     (:action REQUEST_ELEVATOR
-        :parameters (?bot - robot ?loc - location ?elevator - elevator)
+        :parameters (?bot - robot ?from ?to - location ?elevator - elevator ?loc_floor ?floor_from ?floor_to - floor)
         :precondition (and
-            (robot_at ?bot ?loc)
-            (elevator_at ?elevator ?loc)
+            (robot_at ?bot ?from)
+            (elevator_at ?elevator ?from)
+            (location_floor ?from ?floor_from)
+            (location_floor ?to ?floor_to)
+            (not (= ?floor_from ?floor_to))
+            (forall (?elevator - elevator)
+                (and
+                    (not (requested ?bot ?elevator))
+                    (not (robot_in ?bot ?elevator))
+                )
+            )
         )
         :effect (and
             (requested ?bot ?elevator)
-            (assign (destination_floor ?elevator) (location_floor ?loc))
+            (destination_floor ?elevator ?floor_to)
         )
     )
 
@@ -102,18 +114,19 @@
     )
 
     (:action ENTER_ELEVATOR
-        :parameters (?bot - robot ?loc - location ?dest_loc - location ?elevator - elevator ?load - load)
+        :parameters (?bot - robot ?loc - location ?dest_loc - location ?dest_floor - floor ?elevator - elevator ?load - load)
         :precondition (and
             (robot_at ?bot ?loc)
             (elevator_at ?elevator ?loc)
             (requested ?bot ?elevator)
             (arrived ?elevator)
+            (location_floor ?dest_loc ?dest_floor)
         )
         :effect (and
             (robot_in ?bot ?elevator)
             (not (robot_at ?bot ?loc))
             (not (arrived ?elevator))
-            (assign (destination_floor ?elevator) (location_floor ?dest_loc))
+            (destination_floor ?elevator ?dest_floor)
             (when (and (holding ?bot ?load))
                 (and (load_in ?load ?elevator))
             )
@@ -121,36 +134,38 @@
     )
 
     (:action RIDE_ELEVATOR
-        :parameters (?bot - robot ?elevator - elevator)
+        :parameters (?bot - robot ?elevator - elevator ?dest_floor - floor)
         :precondition (and
             (robot_in ?bot ?elevator)
+            (destination_floor ?elevator ?dest_floor)
         )
         :effect (and
-            (assign (elevator_floor ?elevator) (destination_floor ?elevator))
-            (assign (robot_floor ?bot) (destination_floor ?elevator))
+            (elevator_floor ?elevator ?dest_floor)
+            (robot_floor ?bot ?dest_floor)
         )
     )
 
     (:action EXIT_ELEVATOR
-        :parameters (?bot - robot ?loc - location ?elevator - elevator ?load - load)
+        :parameters (?bot - robot ?loc - location ?elevator - elevator ?load - load ?elev_floor ?dest_floor - floor)
         :precondition (and
             (robot_in ?bot ?elevator)
             (elevator_at ?elevator ?loc)
             (arrived ?elevator)
-            (= (elevator_floor ?elevator) (destination_floor ?elevator))
-            (= (location_floor ?loc) (elevator_floor ?elevator))
+            (elevator_floor ?elevator ?elev_floor)
+            (destination_floor ?elevator ?dest_floor)
+            (= ?elev_floor ?dest_floor)
         )
         :effect (and
             (robot_at ?bot ?loc)
             (not (robot_in ?bot ?elevator))
             (not (arrived ?elevator))
             (not (requested ?bot ?elevator))
-            (assign (robot_floor ?bot) (elevator_floor ?elevator))
+            (robot_floor ?bot ?elev_floor)
             (when (and (holding ?bot ?load))
                 (and
                     (not (load_in ?load ?elevator))
                     (load_at ?load ?loc)
-                    (assign (load_floor ?load) (elevator_floor ?elevator))
+                    (load_floor ?load ?elev_floor)
                 )
             )
         )
