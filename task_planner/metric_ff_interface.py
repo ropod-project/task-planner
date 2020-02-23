@@ -1,7 +1,7 @@
 from os.path import join
 import uuid
 import subprocess
-from typing import Tuple, List
+from typing import Tuple, Sequence
 import logging
 
 from ropod.structs.task import TaskRequest
@@ -11,7 +11,7 @@ from ropod.structs.area import Area
 from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.knowledge_base_interface import Predicate
 from task_planner.action_models import ActionModelLibrary
-from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary
+from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLNumericFluentLibrary
 
 
 class MetricFFInterface(TaskPlannerInterface):
@@ -66,7 +66,7 @@ class MetricFFInterface(TaskPlannerInterface):
 
     def generate_problem_file(self, predicate_assertions: list,
                               fluent_assertions: list,
-                              task_goals: List[Predicate]) -> str:
+                              task_goals: Sequence[Predicate]) -> str:
         obj_types = {}
         init_state_str = ''
 
@@ -80,7 +80,7 @@ class MetricFFInterface(TaskPlannerInterface):
             init_state_str += assertion_str
 
 
-        # for numeric fluents, we generate strings  of the form
+        # for numeric fluents, we generate strings of the form
         # (= (fluent_name param_1 param_2 ... param_n) fluent_value); otherwise,
         # we generate strings just like for predicate assertions
         for assertion in fluent_assertions:
@@ -92,9 +92,9 @@ class MetricFFInterface(TaskPlannerInterface):
                                                                  ' '.join(ordered_param_list),
                                                                  assertion.value)
             else:
-                ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
-                                                                                           assertion.params,
-                                                                                           obj_types)
+                ordered_param_list, obj_types = PDDLNumericFluentLibrary.get_assertion_param_list(assertion.name,
+                                                                                                  assertion.params,
+                                                                                                  obj_types)
                 assertion_str = '        (= ({0} {1}) {2})\n'.format(assertion.name,
                                                                      ' '.join(ordered_param_list),
                                                                      assertion.value)

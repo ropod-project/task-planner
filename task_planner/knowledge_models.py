@@ -75,10 +75,10 @@ class PDDLPredicateLibrary(object):
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
 
-class PDDLFluentLibrary(object):
+class PDDLNumericFluentLibrary(object):
     @staticmethod
     def get_assertion_param_list(fluent_name: str, fluent_params: list, obj_types: dict) -> Tuple[list, dict]:
-        ordered_param_list, obj_types = getattr(PDDLFluentLibrary, fluent_name)(fluent_params, obj_types)
+        ordered_param_list, obj_types = getattr(PDDLNumericFluentLibrary, fluent_name)(fluent_params, obj_types)
         return ordered_param_list, obj_types
 
     @staticmethod
