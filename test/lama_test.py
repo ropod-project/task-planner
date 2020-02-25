@@ -79,6 +79,10 @@ class LamaPlannerTest(unittest.TestCase):
         # 4. UNDOCK
         assert len(plan) == 4
 
+        expected_action_sequence = ['GOTO', 'DOCK', 'GOTO', 'UNDOCK']
+        obtained_action_sequence = [action.type for action in plan]
+        assert expected_action_sequence == obtained_action_sequence
+
     def test_delivery_location_diff_floor(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
         state_fluents = [('robot_at', [('bot', 'frank')], 'charging_station'),
@@ -130,7 +134,20 @@ class LamaPlannerTest(unittest.TestCase):
         # 9. EXIT_ELEVATOR
         # 10. GOTO delivery_location
         # 11. UNDOCK
+        # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 11
+
+        allowed_action_sequence1 = ['GOTO', 'DOCK', 'GOTO', 'REQUEST_ELEVATOR',
+                                    'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
+        allowed_action_sequence2 = ['GOTO', 'DOCK', 'GOTO', 'REQUEST_ELEVATOR',
+                                    'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
+        obtained_action_sequence = [action.type for action in plan]
+        assert (allowed_action_sequence1 == obtained_action_sequence) or\
+               (allowed_action_sequence2 == obtained_action_sequence)
 
     def test_robot_cart_diff_floors(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
@@ -191,7 +208,38 @@ class LamaPlannerTest(unittest.TestCase):
         # 16. EXIT_ELEVATOR
         # 17. GOTO delivery_location
         # 18. UNDOCK
+        # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 18
+
+        allowed_action_sequence1 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'ENTER_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR', 'EXIT_ELEVATOR',
+                                    'GOTO', 'UNDOCK']
+        allowed_action_sequence2 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'ENTER_ELEVATOR', 'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR', 'EXIT_ELEVATOR',
+                                    'GOTO', 'UNDOCK']
+        allowed_action_sequence3 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'ENTER_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'EXIT_ELEVATOR',
+                                    'GOTO', 'UNDOCK']
+        allowed_action_sequence4 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'ENTER_ELEVATOR', 'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
+                                    'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'EXIT_ELEVATOR',
+                                    'GOTO', 'UNDOCK']
+        obtained_action_sequence = [action.type for action in plan]
+        assert (allowed_action_sequence1 == obtained_action_sequence) or\
+               (allowed_action_sequence2 == obtained_action_sequence) or\
+               (allowed_action_sequence3 == obtained_action_sequence) or\
+               (allowed_action_sequence4 == obtained_action_sequence)
 
     @classmethod
     def _drop_test_db(self):
