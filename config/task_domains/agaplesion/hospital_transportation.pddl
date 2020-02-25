@@ -55,7 +55,7 @@
     )
 
     (:action DOCK
-        :parameters (?bot - robot ?load - load ?bot_floor ?loc_floor - floor ?loc - location)
+        :parameters (?bot - robot ?load - load ?loc - location ?bot_floor ?loc_floor - floor)
         :precondition (and
             (robot_at ?bot ?loc)
             (load_at ?load ?loc)
