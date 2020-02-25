@@ -17,7 +17,7 @@
 
 Defines a package (`task_planner`) that exposes interfaces to a knowledge base and a task planner.
 
-Only the [Metric-FF](https://fai.cs.uni-saarland.de/hoffmann/metric-ff.html) planner is currently supported.
+Both [LAMA](https://arxiv.org/abs/1401.3839) and [Metric-FF](https://arxiv.org/abs/1106.5271) are currently supported.
 
 Parameters for the planner are specified in `config/planner_config.yaml`; in particular, the following parameters need to be specified:
 * `planner_name`: Name of the used planner
@@ -99,7 +99,7 @@ Planning goals can be inserted/removed just as facts, only that the function cal
 An example of using the MetricFF task planner to create a plan for a Mobidik transportation task is given below:
 
 ```
-from task_planner.metric_ff_interface import MetricFFInterface
+from task_planner.lama_interface import LAMAFFInterface
 
 # reading the planner configuration parameters
 domain_file = ''
@@ -111,7 +111,7 @@ with open('config/planner_config.yaml', 'r') as config_file:
     planner_cmd = planner_config['planner_cmd']
     plan_file_path = planner_config['plan_file_path']
 
-planner = MetricFFInterface('ropod_kb', domain_file, planner_cmd, plan_file_path, debug=True)
+planner = LAMAInterface('ropod_kb', domain_file, planner_cmd, plan_file_path, debug=True)
 
 # creating a task request
 task_request = TaskRequest()
@@ -129,11 +129,17 @@ task_goals = [('load_at', [('load', task_request.load_id),
 plan_found, plan = planner.plan(task_request, robot_name, task_goals)
 ```
 
+## Tests
+
+Unit tests are included under [test](test) (currently only for the LAMA planner).
+
 ## API description
 
 ### Planner API
 
-The task planner exposes functionalities for creating a task plan given a task request and a robot task assignment. The package includes a generic interface definition - the abstract `TaskPlannerInterface` class in [`task_planner/planner_interface.py`](task_planner/planner_interface.py) - as well as a specific implementation that uses the Metric-FF planner - the `MetricFFInterface` class in [`task_planner/metric_ff_interface.py`](task_planner/metric_ff_interface.py).
+The task planner exposes functionalities for creating a task plan given a task request and a robot task assignment. The package includes a generic interface definition - the abstract `TaskPlannerInterface` class in [`task_planner/planner_interface.py`](task_planner/planner_interface.py) - as well as planner-specific implementations, namely:
+* the `LAMAInterface` class in [`task_planner/lama_interface.py`](task_planner/lama_interface.py)
+* the `MetricFFInterface` class in [`task_planner/metric_ff_interface.py`](task_planner/metric_ff_interface.py)
 
 #### TaskPlannerInterface
 
@@ -141,7 +147,7 @@ An abstract class containing the following fields:
 * `kb_database_name`: Name of a database for storing the knowledge base
 * `domain_file`: Absolute path of a planning domain file
 * `domain_name`: Name of the planning domain (extracted from the domain file)
-* `planner_cmd`: Command used for running a task planner; the words "DOMAIN" and "PROBLEM" are expected to be in the command so that they can be appropriately replaced with the paths of domain and problem files
+* `planner_cmd`: Command used for running a task planner; the words "DOMAIN" and "PROBLEM" are expected to be in the command so that they can be appropriately replaced with the paths of domain and problem files; for LAMA, the word "PLAN-FILE" is also expected to be passed since the planner potentially generates multiple plan files
 * `plan_file_path`: Directory where generated plan files should be saved
 * `debug`: A Boolean indicating whether to run the planner in debug mode (thus providing more detailed debugging output)
 
