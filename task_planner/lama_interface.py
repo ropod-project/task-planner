@@ -1,3 +1,4 @@
+import os
 from os import listdir
 from os.path import join
 from typing import Tuple, Sequence
@@ -13,7 +14,8 @@ from ropod.structs.area import Area
 from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.knowledge_base_interface import Predicate
 from task_planner.action_models import ActionModelLibrary
-from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLNumericFluentLibrary
+from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary,\
+                                          PDDLNumericFluentLibrary
 
 
 class LAMAInterface(TaskPlannerInterface):
@@ -63,7 +65,13 @@ class LAMAInterface(TaskPlannerInterface):
         subprocess.run(planner_cmd_elements)
         self.logger.info('Planning finished')
 
+        self.logger.info('Parsing plans...')
         plan_found, plan = self.parse_plan(task_request.load_type, robot)
+
+        self.logger.info('Removing problem file...')
+        os.remove(problem_file)
+        self.logger.info('Planner done')
+
         return plan_found, plan
 
     def generate_problem_file(self, predicate_assertions: list,
@@ -90,6 +98,14 @@ class LAMAInterface(TaskPlannerInterface):
                 ordered_param_list, obj_types = PDDLPredicateLibrary.get_assertion_param_list(assertion.name,
                                                                                               assertion.params,
                                                                                               obj_types)
+                assertion_str = '        ({0} {1} {2})\n'.format(assertion.name,
+                                                                 ' '.join(ordered_param_list),
+                                                                 assertion.value)
+            elif hasattr(PDDLFluentLibrary, assertion.name):
+                ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
+                                                                                           assertion.params,
+                                                                                           assertion.value,
+                                                                                           obj_types)
                 assertion_str = '        ({0} {1} {2})\n'.format(assertion.name,
                                                                  ' '.join(ordered_param_list),
                                                                  assertion.value)
@@ -172,7 +188,8 @@ class LAMAInterface(TaskPlannerInterface):
         for plan_file_name in plan_files:
             plan = []
             plan_action_strings = []
-            with open(join(self.plan_file_path, plan_file_name), 'r') as plan_file:
+            current_plan_file_path = join(self.plan_file_path, plan_file_name)
+            with open(current_plan_file_path, 'r') as plan_file:
                 while True:
                     line = plan_file.readline()
                     if line.find(';') != -1:
@@ -199,6 +216,7 @@ class LAMAInterface(TaskPlannerInterface):
                         self.logger.debug(action_line)
                 plans.append(plan)
                 action_strings_per_plan.append(plan_action_strings)
+            os.remove(current_plan_file_path)
 
         plan_lengths = [len(plan) for plan in plans]
         shortest_plan_idx = np.argmin(plan_lengths)
@@ -212,8 +230,8 @@ class LAMAInterface(TaskPlannerInterface):
         return True, plans[shortest_plan_idx]
 
     def process_action_str(self, action_line: str) -> Action:
-        action_data = action_line[action_line.find(':')+2:].split()
-        action_name = action_data[0]
+        action_data = action_line.split()
+        action_name = action_data[0].upper()
         action_params = action_data[1:]
         action = ActionModelLibrary.get_action_model(action_name, action_params)
         return action

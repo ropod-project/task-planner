@@ -30,31 +30,6 @@ class PDDLPredicateLibrary(object):
         return ordered_param_list, updated_obj_types
 
     @staticmethod
-    def robot_at(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('bot', 'robot'), 1: ('loc', 'location')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
-    def robot_in(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('bot', 'robot'), 1: ('elevator', 'elevator')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
-    def load_at(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('load', 'load'), 1: ('loc', 'location')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
-    def load_in(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('load', 'load'), 1: ('elevator', 'elevator')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
-    def elevator_at(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('elevator', 'elevator'), 1: ('loc', 'location')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
     def empty_gripper(params: list, obj_types: dict) -> Tuple[list, dict]:
         param_order = {0: ('bot', 'robot')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
@@ -74,6 +49,137 @@ class PDDLPredicateLibrary(object):
         param_order = {0: ('elevator', 'elevator')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
+    @staticmethod
+    def elevator_at(params: list, obj_types: dict) -> Tuple[list, dict]:
+        param_order = {0: ('elevator', 'elevator'), 1: ('loc', 'location')}
+        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
+
+class PDDLFluentLibrary(object):
+    @staticmethod
+    def get_assertion_param_list(fluent_name: str, fluent_params: list,
+                                 fluent_value: str, obj_types: dict) -> Tuple[list, dict]:
+        ordered_param_list, obj_types = getattr(PDDLFluentLibrary, fluent_name)(fluent_params,
+                                                                                obj_types,
+                                                                                fluent_value)
+        return ordered_param_list, obj_types
+
+    @staticmethod
+    def robot_at(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('bot', 'robot')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'location' in updated_obj_types:
+            if fluent_value not in updated_obj_types['location']:
+                updated_obj_types['location'].append(fluent_value)
+        else:
+            updated_obj_types['location'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def robot_in(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('bot', 'robot')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'elevator' in updated_obj_types:
+            if fluent_value not in updated_obj_types['elevator']:
+                updated_obj_types['elevator'].append(fluent_value)
+        else:
+            updated_obj_types['elevator'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def load_at(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'location' in updated_obj_types:
+            if fluent_value not in updated_obj_types['location']:
+                updated_obj_types['location'].append(fluent_value)
+        else:
+            updated_obj_types['location'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def load_in(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'elevator' in updated_obj_types:
+            if fluent_value not in updated_obj_types['elevator']:
+                updated_obj_types['elevator'].append(fluent_value)
+        else:
+            updated_obj_types['elevator'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def robot_floor(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('bot', 'robot')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'floor' in updated_obj_types:
+            if fluent_value not in updated_obj_types['floor']:
+                updated_obj_types['floor'].append(fluent_value)
+        else:
+            updated_obj_types['floor'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def load_floor(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('load', 'load')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'floor' in updated_obj_types:
+            if fluent_value not in updated_obj_types['floor']:
+                updated_obj_types['floor'].append(fluent_value)
+        else:
+            updated_obj_types['floor'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def location_floor(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('loc', 'location')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'floor' in updated_obj_types:
+            if fluent_value not in updated_obj_types['floor']:
+                updated_obj_types['floor'].append(fluent_value)
+        else:
+            updated_obj_types['floor'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def elevator_floor(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('elevator', 'elevator')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'floor' in updated_obj_types:
+            if fluent_value not in updated_obj_types['floor']:
+                updated_obj_types['floor'].append(fluent_value)
+        else:
+            updated_obj_types['floor'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
+    @staticmethod
+    def destination_floor(params: list, obj_types: dict, fluent_value: str) -> Tuple[list, dict]:
+        param_order = {0: ('elevator', 'elevator')}
+        ordered_param_list, updated_obj_types = PDDLKnowledgeUtils.get_ordered_param_list(params,
+                                                                                          param_order,
+                                                                                          obj_types)
+        if 'floor' in updated_obj_types:
+            if fluent_value not in updated_obj_types['floor']:
+                updated_obj_types['floor'].append(fluent_value)
+        else:
+            updated_obj_types['floor'] = [fluent_value]
+        return ordered_param_list, updated_obj_types
+
 
 class PDDLNumericFluentLibrary(object):
     @staticmethod
@@ -84,11 +190,6 @@ class PDDLNumericFluentLibrary(object):
     @staticmethod
     def robot_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
         param_order = {0: ('bot', 'robot')}
-        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
-
-    @staticmethod
-    def location_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
-        param_order = {0: ('loc', 'location')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
