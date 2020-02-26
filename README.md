@@ -56,11 +56,11 @@ from task_planner.knowledge_base_interface import KnowledgeBaseInterface
 kb_interface = KnowledgeBaseInterface('ropod_kb')
 ```
 
-Let's say we want to add and remove certain facts (for instance, we want to state that the robot "frank" is at the location "BRSU_L0_C1" and that the load "mobidik_123" is not at "BRSU_L0_C1" anymore); we can specify these facts as follows:
+Let's say we want to add and remove certain facts (e.g. we want to say that the gripper of a robot "frank" is empty and that it is not holding the load "mobidik_123" anymore); we can specify these facts as follows:
 
 ```
-facts_to_add = [('robot_at', [('bot', 'frank'), ('loc', 'BRSU_L0_C1')])]
-facts_to_remove = [('load_at', [('load', 'mobidik_123'), ('loc', 'BRSU_L0_C1')])]
+facts_to_add = [('empty_gripper', [('bot', 'frank')])]
+facts_to_remove = [('holding', [('bot', 'frank'), ('load', 'mobidik_123')])]
 ```
 
 Note that we represent a predicate as a tuple in which the first entry is the predicate name and the second is a list of predicate parameters ("name" and "value" pairs).
@@ -78,28 +78,33 @@ or with one function call:
 kb_interface.update_kb(facts_to_add, facts_to_remove)
 ```
 
-If the facts are fluents instead of predicate assertions (e.g. we want to insert or remove the fact that the robot "frank" is on the second floor), we can insert/remove them as follows:
+If the facts are fluents instead of predicate assertions (e.g. we want to state that the robot "frank" is at the location "BRSU_L0_C1" and that the load "mobidik_123" is not at "BRSU_L0_C1" anymore, and we also want to insert the fact that the robot "frank" is on the second floor, while the load "mobidik_123" is not on the ground floor), we can insert/remove them as follows:
 
 ```
-fluents = [('robot_floor', [('bot', 'frank')], 2)]
+fluents_to_add = [('robot_at', [('bot', 'frank'), ('loc', 'BRSU_L0_C1')]),
+                  ('robot_floor', [('bot', 'frank')], floor2)]
+fluents_to_remove = [('load_at', [('load', 'mobidik_123'), ('loc', 'BRSU_L0_C1')]),
+                     ('load_floor', [('bot', 'frank')], floor0)]
 
 # adding the fluents to the knowledge base
-kb_interface.insert_fluents(fluents)
+kb_interface.insert_fluents(fluents_to_add)
 
 # or removing them from it
-kb_interface.remove_fluents(fluents)
+kb_interface.remove_fluents(fluents_to_remove)
 ```
 
 Note that a fluent is also represented as a tuple, but with three entries instead of two, such that the first entry is the fluent name, the second a list of predicate parameters ("name" and "value" pairs), and the third the fluent value.
 
 Planning goals can be inserted/removed just as facts, only that the function calls change (`insert_goals` and `remove_goals` respectively). Note that only predicates can be inserted as planning goals.
 
+For a list of defined predicates and fluents, please consult the [knowledge_models](task_planner/knowledge_models.py) collection of domain mappings.
+
 ### Task planner
 
-An example of using the MetricFF task planner to create a plan for a Mobidik transportation task is given below:
+An example of using the LAMA task planner to create a plan for a Mobidik transportation task is given below:
 
 ```
-from task_planner.lama_interface import LAMAFFInterface
+from task_planner.lama_interface import LAMAInterface
 
 # reading the planner configuration parameters
 domain_file = ''
