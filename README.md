@@ -4,7 +4,11 @@
 2. [Dependencies](#dependencies)
 3. [Design principles](#design-principles)
 4. [Usage examples](#usage-examples)
-5. [API description](#api-description)
+    1. [Knowledge base](#knowledge-base)
+    2. [Task planner](#task-planner)
+5. [Planner setup](#planner-setup)
+6. [Tests](#tests)
+7. [API description](#api-description)
     1. [Planner API](#planner-api)
     2. [Knowledge base API](#knowledge-base-api)
         1. [KnowledgeBaseInterface](#knowledgebaseinterface)
@@ -134,6 +138,12 @@ task_goals = [('load_at', [('load', task_request.load_id),
 # requesting a plan
 plan_found, plan = planner.plan(task_request, robot_name, task_goals)
 ```
+
+## Planner Setup
+
+For setting up the LAMA planner, the instructions at https://github.com/b-it-bots/lama_planner should suffice.
+
+For Metric-FF, the executable can be downloaded from the home page of the planner: https://fai.cs.uni-saarland.de/hoffmann/metric-ff.html
 
 ## Tests
 
