@@ -1,0 +1,4 @@
+pymongo
+numpy
+PyYAML
+git+https://github.com/ropod-project/ropod_common.git#egg=ropod_common

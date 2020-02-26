@@ -30,7 +30,8 @@ Note: The package is developed for Python 3.5+ since it makes use of Python typi
 ## Dependencies
 
 * `pymongo`
-* `termcolor`
+* `numpy`
+* `PyYAML`
 * [`ropod_common`](https://github.com/ropod-project/ropod_common)
 
 ## Design principles and assumptions
