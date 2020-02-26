@@ -198,6 +198,11 @@ class PDDLNumericFluentLibrary(object):
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
 
     @staticmethod
+    def location_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
+        param_order = {0: ('loc', 'location')}
+        return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
+
+    @staticmethod
     def elevator_floor(params: list, obj_types: dict) -> Tuple[list, dict]:
         param_order = {0: ('elevator', 'elevator')}
         return PDDLKnowledgeUtils.get_ordered_param_list(params, param_order, obj_types)
