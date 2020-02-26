@@ -11,7 +11,8 @@ from ropod.structs.area import Area
 from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.knowledge_base_interface import Predicate
 from task_planner.action_models import ActionModelLibrary
-from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLNumericFluentLibrary
+from task_planner.knowledge_models import PDDLPredicateLibrary, PDDLFluentLibrary,\
+                                          PDDLNumericFluentLibrary
 
 
 class MetricFFInterface(TaskPlannerInterface):
@@ -88,6 +89,14 @@ class MetricFFInterface(TaskPlannerInterface):
                 ordered_param_list, obj_types = PDDLPredicateLibrary.get_assertion_param_list(assertion.name,
                                                                                               assertion.params,
                                                                                               obj_types)
+                assertion_str = '        ({0} {1} {2})\n'.format(assertion.name,
+                                                                 ' '.join(ordered_param_list),
+                                                                 assertion.value)
+            elif hasattr(PDDLFluentLibrary, assertion.name):
+                ordered_param_list, obj_types = PDDLFluentLibrary.get_assertion_param_list(assertion.name,
+                                                                                           assertion.params,
+                                                                                           assertion.value,
+                                                                                           obj_types)
                 assertion_str = '        ({0} {1} {2})\n'.format(assertion.name,
                                                                  ' '.join(ordered_param_list),
                                                                  assertion.value)
