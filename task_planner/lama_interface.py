@@ -58,7 +58,8 @@ class LAMAInterface(TaskPlannerInterface):
                                                   predicate_task_goals)
 
         planner_cmd = self.planner_cmd.replace('PROBLEM', problem_file)
-        planner_cmd = planner_cmd.replace('PLAN-FILE', self._plan_file_name)
+        planner_cmd = planner_cmd.replace('PLAN-FILE', join(self.plan_file_path,
+                                                            self._plan_file_name))
         planner_cmd_elements = planner_cmd.split()
 
         self.logger.info('Planning task...')
@@ -198,6 +199,11 @@ class LAMAInterface(TaskPlannerInterface):
                         action_line = line.strip()[1:-1]
                         action = self.process_action_str(action_line)
                         for i in range(len(action.areas)):
+                            # we capitalise the area name since the planner writes
+                            # all areas with small letters, while the OSM convention
+                            # is to have all letters in the name capitalised
+                            action.areas[i].name = action.areas[i].name.upper()
+
                             floor_fluent = ('location_floor', [('loc', action.areas[i].name)])
                             floor = self.kb_interface.get_fluent_value(floor_fluent)
 
