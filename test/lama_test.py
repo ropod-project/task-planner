@@ -33,6 +33,54 @@ class LamaPlannerTest(unittest.TestCase):
     def tearDownClass(self):
         self._drop_test_db()
 
+    def test_robot_cart_same_location_delivery_same_floor(self):
+        state_facts = [('empty_gripper', [('bot', 'frank')])]
+        state_fluents = [('robot_at', [('bot', 'frank')], 'PICKUP_LOCATION'),
+                         ('load_at', [('load', 'mobidik')], 'PICKUP_LOCATION')]
+
+        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR0')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR1')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR2')])]
+        floor_fluents = [('robot_floor', [('bot', 'frank')], 'floor0'),
+                         ('load_floor', [('load', 'mobidik')], 'floor0'),
+                         ('elevator_floor', [('elevator', 'toma_elevator')], 'unknown'),
+                         ('destination_floor', [('elevator', 'toma_elevator')], 'unknown'),
+                         ('location_floor', [('loc', 'PICKUP_LOCATION')], 'floor0'),
+                         ('location_floor', [('loc', 'DELIVERY_LOCATION')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR0')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR2')], 'floor2')]
+
+        self.planner_interface.kb_interface.insert_facts(state_facts)
+        self.planner_interface.kb_interface.insert_facts(floor_facts)
+        self.planner_interface.kb_interface.insert_fluents(state_fluents)
+        self.planner_interface.kb_interface.insert_fluents(floor_fluents)
+
+        task_request = TaskRequest()
+        task_request.load_id = 'mobidik'
+        task_request.delivery_pose.id = 'DELIVERY_LOCATION'
+
+        task_goals = [('load_at', [('load', task_request.load_id),
+                                   ('loc', task_request.delivery_pose.id)]),
+                      ('empty_gripper', [('bot', 'frank')])]
+        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+
+        self.planner_interface.kb_interface.remove_facts(state_facts)
+        self.planner_interface.kb_interface.remove_facts(floor_facts)
+        self.planner_interface.kb_interface.remove_fluents(state_fluents)
+        self.planner_interface.kb_interface.remove_fluents(floor_fluents)
+
+        assert plan_found
+
+        # the expected plan is:
+        # 1. DOCK
+        # 2. GOTO DELIVERY_LOCATION
+        # 3. UNDOCK
+        assert len(plan) == 3
+
+        expected_action_sequence = ['DOCK', 'GOTO', 'UNDOCK']
+        obtained_action_sequence = [action.type for action in plan]
+        assert expected_action_sequence == obtained_action_sequence
+
     def test_robot_cart_same_floor(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
         state_fluents = [('robot_at', [('bot', 'frank')], 'CHARGING_STATION'),
