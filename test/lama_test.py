@@ -35,21 +35,21 @@ class LamaPlannerTest(unittest.TestCase):
 
     def test_robot_cart_same_floor(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
-        state_fluents = [('robot_at', [('bot', 'frank')], 'charging_station'),
-                         ('load_at', [('load', 'mobidik')], 'pickup_location')]
+        state_fluents = [('robot_at', [('bot', 'frank')], 'CHARGING_STATION'),
+                         ('load_at', [('load', 'mobidik')], 'PICKUP_LOCATION')]
 
-        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator0')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator1')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator2')])]
+        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR0')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR1')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR2')])]
         floor_fluents = [('robot_floor', [('bot', 'frank')], 'floor0'),
                          ('load_floor', [('load', 'mobidik')], 'floor0'),
                          ('elevator_floor', [('elevator', 'toma_elevator')], 'unknown'),
                          ('destination_floor', [('elevator', 'toma_elevator')], 'unknown'),
-                         ('location_floor', [('loc', 'charging_station')], 'floor0'),
-                         ('location_floor', [('loc', 'pickup_location')], 'floor0'),
-                         ('location_floor', [('loc', 'delivery_location')], 'floor0'),
-                         ('location_floor', [('loc', 'elevator0')], 'floor0'),
-                         ('location_floor', [('loc', 'elevator2')], 'floor0')]
+                         ('location_floor', [('loc', 'CHARGING_STATION')], 'floor0'),
+                         ('location_floor', [('loc', 'PICKUP_LOCATION')], 'floor0'),
+                         ('location_floor', [('loc', 'DELIVERY_LOCATION')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR0')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR2')], 'floor0')]
 
         self.planner_interface.kb_interface.insert_facts(state_facts)
         self.planner_interface.kb_interface.insert_facts(floor_facts)
@@ -58,7 +58,7 @@ class LamaPlannerTest(unittest.TestCase):
 
         task_request = TaskRequest()
         task_request.load_id = 'mobidik'
-        task_request.delivery_pose.id = 'delivery_location'
+        task_request.delivery_pose.id = 'DELIVERY_LOCATION'
 
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
@@ -73,9 +73,9 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO pickup_location
+        # 1. GOTO PICKUP_LOCATION
         # 2. DOCK
-        # 3. GOTO delivery_location
+        # 3. GOTO DELIVERY_LOCATION
         # 4. UNDOCK
         assert len(plan) == 4
 
@@ -85,21 +85,21 @@ class LamaPlannerTest(unittest.TestCase):
 
     def test_delivery_location_diff_floor(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
-        state_fluents = [('robot_at', [('bot', 'frank')], 'charging_station'),
-                         ('load_at', [('load', 'mobidik')], 'pickup_location')]
+        state_fluents = [('robot_at', [('bot', 'frank')], 'CHARGING_STATION'),
+                         ('load_at', [('load', 'mobidik')], 'PICKUP_LOCATION')]
 
-        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator0')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator1')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator2')])]
+        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR0')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR1')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR2')])]
         floor_fluents = [('robot_floor', [('bot', 'frank')], 'floor0'),
                          ('load_floor', [('load', 'mobidik')], 'floor0'),
                          ('elevator_floor', [('elevator', 'toma_elevator')], 'unknown'),
                          ('destination_floor', [('elevator', 'toma_elevator')], 'unknown'),
-                         ('location_floor', [('loc', 'charging_station')], 'floor0'),
-                         ('location_floor', [('loc', 'pickup_location')], 'floor0'),
-                         ('location_floor', [('loc', 'delivery_location')], 'floor2'),
-                         ('location_floor', [('loc', 'elevator0')], 'floor0'),
-                         ('location_floor', [('loc', 'elevator2')], 'floor2')]
+                         ('location_floor', [('loc', 'CHARGING_STATION')], 'floor0'),
+                         ('location_floor', [('loc', 'PICKUP_LOCATION')], 'floor0'),
+                         ('location_floor', [('loc', 'DELIVERY_LOCATION')], 'floor2'),
+                         ('location_floor', [('loc', 'ELEVATOR0')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR2')], 'floor2')]
 
         self.planner_interface.kb_interface.insert_facts(state_facts)
         self.planner_interface.kb_interface.insert_facts(floor_facts)
@@ -108,7 +108,7 @@ class LamaPlannerTest(unittest.TestCase):
 
         task_request = TaskRequest()
         task_request.load_id = 'mobidik'
-        task_request.delivery_pose.id = 'delivery_location'
+        task_request.delivery_pose.id = 'DELIVERY_LOCATION'
 
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
@@ -123,16 +123,16 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO pickup_location
+        # 1. GOTO PICKUP_LOCATION
         # 2. DOCK
-        # 3. GOTO elevator0
+        # 3. GOTO ELEVATOR0
         # 4. REQUEST_ELEVATOR floor0 floor2
         # 5. WAIT_FOR_ELEVATOR
         # 6. ENTER_ELEVATOR
         # 7. WAIT_FOR_ELEVATOR
         # 8. RIDE_ELEVATOR
         # 9. EXIT_ELEVATOR
-        # 10. GOTO delivery_location
+        # 10. GOTO DELIVERY_LOCATION
         # 11. UNDOCK
         # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 11
@@ -151,22 +151,22 @@ class LamaPlannerTest(unittest.TestCase):
 
     def test_robot_cart_diff_floors(self):
         state_facts = [('empty_gripper', [('bot', 'frank')])]
-        state_fluents = [('robot_at', [('bot', 'frank')], 'charging_station'),
-                         ('load_at', [('load', 'mobidik')], 'pickup_location')]
+        state_fluents = [('robot_at', [('bot', 'frank')], 'CHARGING_STATION'),
+                         ('load_at', [('load', 'mobidik')], 'PICKUP_LOCATION')]
 
-        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator0')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator1')]),
-                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'elevator2')])]
+        floor_facts = [('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR0')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR1')]),
+                       ('elevator_at', [('elevator', 'toma_elevator'), ('loc', 'ELEVATOR2')])]
         floor_fluents = [('robot_floor', [('bot', 'frank')], 'floor0'),
                          ('load_floor', [('load', 'mobidik')], 'floor2'),
                          ('elevator_floor', [('elevator', 'toma_elevator')], 'unknown'),
                          ('destination_floor', [('elevator', 'toma_elevator')], 'unknown'),
-                         ('location_floor', [('loc', 'charging_station')], 'floor0'),
-                         ('location_floor', [('loc', 'pickup_location')], 'floor2'),
-                         ('location_floor', [('loc', 'delivery_location')], 'floor1'),
-                         ('location_floor', [('loc', 'elevator0')], 'floor0'),
-                         ('location_floor', [('loc', 'elevator1')], 'floor1'),
-                         ('location_floor', [('loc', 'elevator2')], 'floor2')]
+                         ('location_floor', [('loc', 'CHARGING_STATION')], 'floor0'),
+                         ('location_floor', [('loc', 'PICKUP_LOCATION')], 'floor2'),
+                         ('location_floor', [('loc', 'DELIVERY_LOCATION')], 'floor1'),
+                         ('location_floor', [('loc', 'ELEVATOR0')], 'floor0'),
+                         ('location_floor', [('loc', 'ELEVATOR1')], 'floor1'),
+                         ('location_floor', [('loc', 'ELEVATOR2')], 'floor2')]
 
         self.planner_interface.kb_interface.insert_facts(state_facts)
         self.planner_interface.kb_interface.insert_facts(floor_facts)
@@ -175,7 +175,7 @@ class LamaPlannerTest(unittest.TestCase):
 
         task_request = TaskRequest()
         task_request.load_id = 'mobidik'
-        task_request.delivery_pose.id = 'delivery_location'
+        task_request.delivery_pose.id = 'DELIVERY_LOCATION'
 
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
@@ -190,23 +190,23 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO elevator0
+        # 1. GOTO ELEVATOR0
         # 2. REQUEST_ELEVATOR floor0 floor2
         # 3. WAIT_FOR_ELEVATOR
         # 4. ENTER_ELEVATOR
         # 5. WAIT_FOR_ELEVATOR
         # 6. RIDE_ELEVATOR
         # 7. EXIT_ELEVATOR
-        # 8. GOTO pickup_location
+        # 8. GOTO PICKUP_LOCATION
         # 9. DOCK
-        # 10. GOTO elevator2
+        # 10. GOTO ELEVATOR2
         # 11. REQUEST_ELEVATOR floor2 floor1
         # 12. WAIT_FOR_ELEVATOR
         # 13. ENTER_ELEVATOR
         # 14. WAIT_FOR_ELEVATOR
         # 15. RIDE_ELEVATOR
         # 16. EXIT_ELEVATOR
-        # 17. GOTO delivery_location
+        # 17. GOTO DELIVERY_LOCATION
         # 18. UNDOCK
         # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 18
