@@ -141,7 +141,10 @@ plan_found, plan = planner.plan(task_request, robot_name, task_goals)
 
 ## Planner Setup
 
-For setting up the LAMA planner, the instructions at https://github.com/b-it-bots/lama_planner should suffice.
+For setting up the LAMA planner, execute the install script:
+```
+./install_LAMA_planner.sh
+```
 
 For Metric-FF, the executable can be downloaded from the home page of the planner: https://fai.cs.uni-saarland.de/hoffmann/metric-ff.html
 
