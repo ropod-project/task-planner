@@ -7,10 +7,7 @@ import subprocess
 import numpy as np
 import logging
 
-from ropod.structs.task import TaskRequest
 from ropod.structs.action import Action
-from ropod.structs.area import Area
-
 from task_planner.planner_interface import TaskPlannerInterface
 from task_planner.knowledge_base_interface import Predicate
 from task_planner.action_models import ActionModelLibrary
@@ -28,7 +25,7 @@ class LAMAInterface(TaskPlannerInterface):
                                             debug)
         self.logger = logging.getLogger('task.planner')
 
-    def plan(self, task_request: TaskRequest, robot: str, task_goals: list=None):
+    def plan(self, task_request, robot: str, task_goals: list=None):
         '''
         task_goals can be a list of any of the following variation of Predicate object
             - Object itself
@@ -184,10 +181,8 @@ class LAMAInterface(TaskPlannerInterface):
             self.logger.error('Plan for task %s and robot %s not found', task, robot)
             return False, []
 
-        plans = []
         action_strings_per_plan = []
         for plan_file_name in plan_files:
-            plan = []
             plan_action_strings = []
             current_plan_file_path = join(self.plan_file_path, plan_file_name)
             with open(current_plan_file_path, 'r') as plan_file:
@@ -197,34 +192,12 @@ class LAMAInterface(TaskPlannerInterface):
                         break
                     else:
                         action_line = line.strip()[1:-1]
-                        action = self.process_action_str(action_line)
-                        for i in range(len(action.areas)):
-                            # we capitalise the area name since the planner writes
-                            # all areas with small letters, while the OSM convention
-                            # is to have all letters in the name capitalised
-                            action.areas[i].name = action.areas[i].name.upper()
-
-                            floor_fluent = ('location_floor', [('loc', action.areas[i].name)])
-                            floor = self.kb_interface.get_fluent_value(floor_fluent)
-
-                            # "floor" is either a string of the form "floorX"
-                            # or the "unknown" string; we thus throw away the word
-                            # "floor" to get the actual floor number - or catch an
-                            # exception and set a default unreasonable floor
-                            # if the floor is not known
-                            try:
-                                floor_number = int(floor[5:])
-                            except ValueError:
-                                floor_number = -100
-                            action.areas[i].floor_number = floor_number
-                        plan.append(action)
                         plan_action_strings.append(action_line)
                         self.logger.debug(action_line)
-                plans.append(plan)
                 action_strings_per_plan.append(plan_action_strings)
             os.remove(current_plan_file_path)
 
-        plan_lengths = [len(plan) for plan in plans]
+        plan_lengths = [len(plan) for plan in action_strings_per_plan]
         shortest_plan_idx = np.argmin(plan_lengths)
 
         self.logger.info('Plan for task %s and robot %s found', task, robot)
@@ -233,11 +206,37 @@ class LAMAInterface(TaskPlannerInterface):
         for action_string in action_strings_per_plan[shortest_plan_idx]:
             self.logger.debug(action_string)
         self.logger.debug('-------------------------------')
-        return True, plans[shortest_plan_idx]
+        return True, action_strings_per_plan[shortest_plan_idx]
+
+    def plan_to_action_models(self, action_strings):
+        plan = list()
+        for action_string in action_strings:
+            action = self.process_action_str(action_string)
+            plan.append(action)
+        return plan
 
     def process_action_str(self, action_line: str) -> Action:
         action_data = action_line.split()
         action_name = action_data[0].upper()
         action_params = action_data[1:]
         action = ActionModelLibrary.get_action_model(action_name, action_params)
+        for i in range(len(action.areas)):
+            # we capitalise the area name since the planner writes
+            # all areas with small letters, while the OSM convention
+            # is to have all letters in the name capitalised
+            action.areas[i].name = action.areas[i].name.upper()
+
+            floor_fluent = ('location_floor', [('loc', action.areas[i].name)])
+            floor = self.kb_interface.get_fluent_value(floor_fluent)
+
+            # "floor" is either a string of the form "floorX"
+            # or the "unknown" string; we thus throw away the word
+            # "floor" to get the actual floor number - or catch an
+            # exception and set a default unreasonable floor
+            # if the floor is not known
+            try:
+                floor_number = int(floor[5:])
+            except ValueError:
+                floor_number = -100
+            action.areas[i].floor_number = floor_number
         return action
