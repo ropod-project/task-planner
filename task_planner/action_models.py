@@ -13,7 +13,7 @@ class ActionModelLibrary(object):
         return action
 
     @staticmethod
-    def GOTO(action: Action, params: list) -> Action:
+    def GO_TO(action: Action, params: list) -> Action:
         destination_area = Area()
         destination_area.name = ActionModelLibrary.__room_to_camel_case(params[2])
         action.areas.append(destination_area)

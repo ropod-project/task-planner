@@ -62,7 +62,8 @@ class LamaPlannerTest(unittest.TestCase):
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
                       ('empty_gripper', [('bot', 'frank')])]
-        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan_found, action_strings = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan = self.planner_interface.plan_to_action_models(action_strings)
 
         self.planner_interface.kb_interface.remove_facts(state_facts)
         self.planner_interface.kb_interface.remove_facts(floor_facts)
@@ -73,11 +74,11 @@ class LamaPlannerTest(unittest.TestCase):
 
         # the expected plan is:
         # 1. DOCK
-        # 2. GOTO DELIVERY_LOCATION
+        # 2. GO_TO DELIVERY_LOCATION
         # 3. UNDOCK
         assert len(plan) == 3
 
-        expected_action_sequence = ['DOCK', 'GOTO', 'UNDOCK']
+        expected_action_sequence = ['DOCK', 'GO_TO', 'UNDOCK']
         obtained_action_sequence = [action.type for action in plan]
         assert expected_action_sequence == obtained_action_sequence
 
@@ -110,7 +111,9 @@ class LamaPlannerTest(unittest.TestCase):
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
                       ('empty_gripper', [('bot', 'frank')])]
-        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+
+        plan_found, action_strings = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan = self.planner_interface.plan_to_action_models(action_strings)
 
         self.planner_interface.kb_interface.remove_facts(state_facts)
         self.planner_interface.kb_interface.remove_facts(floor_facts)
@@ -121,24 +124,24 @@ class LamaPlannerTest(unittest.TestCase):
 
         # the expected plan is:
         # 1. DOCK
-        # 2. GOTO ELEVATOR0
+        # 2. GO_TO ELEVATOR0
         # 3. REQUEST_ELEVATOR
         # 4. WAIT_FOR_ELEVATOR
         # 5. ENTER_ELEVATOR
         # 6. WAIT_FOR_ELEVATOR
         # 7. RIDE_ELEVATOR
         # 8. EXIT_ELEVATOR
-        # 9. GOTO DELIVERY_LOCATION
+        # 9. GO_TO DELIVERY_LOCATION
         # 10. UNDOCK
         # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 10
 
-        allowed_action_sequence1 = ['DOCK', 'GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+        allowed_action_sequence1 = ['DOCK', 'GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
-        allowed_action_sequence2 = ['DOCK', 'GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'UNDOCK']
+        allowed_action_sequence2 = ['DOCK', 'GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
+                                    'EXIT_ELEVATOR', 'GO_TO', 'UNDOCK']
         obtained_action_sequence = [action.type for action in plan]
         assert (allowed_action_sequence1 == obtained_action_sequence) or\
                (allowed_action_sequence2 == obtained_action_sequence)
@@ -173,7 +176,8 @@ class LamaPlannerTest(unittest.TestCase):
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
                       ('empty_gripper', [('bot', 'frank')])]
-        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan_found, action_strings = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan = self.planner_interface.plan_to_action_models(action_strings)
 
         self.planner_interface.kb_interface.remove_facts(state_facts)
         self.planner_interface.kb_interface.remove_facts(floor_facts)
@@ -183,13 +187,13 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO PICKUP_LOCATION
+        # 1. GO_TO PICKUP_LOCATION
         # 2. DOCK
-        # 3. GOTO DELIVERY_LOCATION
+        # 3. GO_TO DELIVERY_LOCATION
         # 4. UNDOCK
         assert len(plan) == 4
 
-        expected_action_sequence = ['GOTO', 'DOCK', 'GOTO', 'UNDOCK']
+        expected_action_sequence = ['GO_TO', 'DOCK', 'GO_TO', 'UNDOCK']
         obtained_action_sequence = [action.type for action in plan]
         assert expected_action_sequence == obtained_action_sequence
 
@@ -223,7 +227,8 @@ class LamaPlannerTest(unittest.TestCase):
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
                       ('empty_gripper', [('bot', 'frank')])]
-        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan_found, action_strings = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan = self.planner_interface.plan_to_action_models(action_strings)
 
         self.planner_interface.kb_interface.remove_facts(state_facts)
         self.planner_interface.kb_interface.remove_facts(floor_facts)
@@ -233,28 +238,28 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO PICKUP_LOCATION
+        # 1. GO_TO PICKUP_LOCATION
         # 2. DOCK
-        # 3. GOTO ELEVATOR0
+        # 3. GO_TO ELEVATOR0
         # 4. REQUEST_ELEVATOR floor0 floor2
         # 5. WAIT_FOR_ELEVATOR
         # 6. ENTER_ELEVATOR
         # 7. WAIT_FOR_ELEVATOR
         # 8. RIDE_ELEVATOR
         # 9. EXIT_ELEVATOR
-        # 10. GOTO DELIVERY_LOCATION
+        # 10. GO_TO DELIVERY_LOCATION
         # 11. UNDOCK
         # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 11
 
-        allowed_action_sequence1 = ['GOTO', 'DOCK', 'GOTO', 'REQUEST_ELEVATOR',
+        allowed_action_sequence1 = ['GO_TO', 'DOCK', 'GO_TO', 'REQUEST_ELEVATOR',
                                     'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
-        allowed_action_sequence2 = ['GOTO', 'DOCK', 'GOTO', 'REQUEST_ELEVATOR',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'UNDOCK']
+        allowed_action_sequence2 = ['GO_TO', 'DOCK', 'GO_TO', 'REQUEST_ELEVATOR',
                                     'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'UNDOCK']
+                                    'EXIT_ELEVATOR', 'GO_TO', 'UNDOCK']
         obtained_action_sequence = [action.type for action in plan]
         assert (allowed_action_sequence1 == obtained_action_sequence) or\
                (allowed_action_sequence2 == obtained_action_sequence)
@@ -290,7 +295,8 @@ class LamaPlannerTest(unittest.TestCase):
         task_goals = [('load_at', [('load', task_request.load_id),
                                    ('loc', task_request.delivery_pose.id)]),
                       ('empty_gripper', [('bot', 'frank')])]
-        plan_found, plan = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan_found, action_strings = self.planner_interface.plan(task_request, 'frank', task_goals)
+        plan = self.planner_interface.plan_to_action_models(action_strings)
 
         self.planner_interface.kb_interface.remove_facts(state_facts)
         self.planner_interface.kb_interface.remove_facts(floor_facts)
@@ -300,51 +306,51 @@ class LamaPlannerTest(unittest.TestCase):
         assert plan_found
 
         # the expected plan is:
-        # 1. GOTO ELEVATOR0
+        # 1. GO_TO ELEVATOR0
         # 2. REQUEST_ELEVATOR floor0 floor2
         # 3. WAIT_FOR_ELEVATOR
         # 4. ENTER_ELEVATOR
         # 5. WAIT_FOR_ELEVATOR
         # 6. RIDE_ELEVATOR
         # 7. EXIT_ELEVATOR
-        # 8. GOTO PICKUP_LOCATION
+        # 8. GO_TO PICKUP_LOCATION
         # 9. DOCK
-        # 10. GOTO ELEVATOR2
+        # 10. GO_TO ELEVATOR2
         # 11. REQUEST_ELEVATOR floor2 floor1
         # 12. WAIT_FOR_ELEVATOR
         # 13. ENTER_ELEVATOR
         # 14. WAIT_FOR_ELEVATOR
         # 15. RIDE_ELEVATOR
         # 16. EXIT_ELEVATOR
-        # 17. GOTO DELIVERY_LOCATION
+        # 17. GO_TO DELIVERY_LOCATION
         # 18. UNDOCK
         # though RIDE_ELEVATOR can also be followed by WAIT_FOR_ELEVATOR
         assert len(plan) == 18
 
-        allowed_action_sequence1 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+        allowed_action_sequence1 = ['GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'DOCK', 'GO_TO',
                                     'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR', 'EXIT_ELEVATOR',
-                                    'GOTO', 'UNDOCK']
-        allowed_action_sequence2 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'GO_TO', 'UNDOCK']
+        allowed_action_sequence2 = ['GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'DOCK', 'GO_TO',
                                     'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR', 'EXIT_ELEVATOR',
-                                    'GOTO', 'UNDOCK']
-        allowed_action_sequence3 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'GO_TO', 'UNDOCK']
+        allowed_action_sequence3 = ['GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'RIDE_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'DOCK', 'GO_TO',
                                     'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'EXIT_ELEVATOR',
-                                    'GOTO', 'UNDOCK']
-        allowed_action_sequence4 = ['GOTO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
+                                    'GO_TO', 'UNDOCK']
+        allowed_action_sequence4 = ['GO_TO', 'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR',
                                     'ENTER_ELEVATOR', 'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR',
-                                    'EXIT_ELEVATOR', 'GOTO', 'DOCK', 'GOTO',
+                                    'EXIT_ELEVATOR', 'GO_TO', 'DOCK', 'GO_TO',
                                     'REQUEST_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'ENTER_ELEVATOR',
                                     'RIDE_ELEVATOR', 'WAIT_FOR_ELEVATOR', 'EXIT_ELEVATOR',
-                                    'GOTO', 'UNDOCK']
+                                    'GO_TO', 'UNDOCK']
         obtained_action_sequence = [action.type for action in plan]
         assert (allowed_action_sequence1 == obtained_action_sequence) or\
                (allowed_action_sequence2 == obtained_action_sequence) or\

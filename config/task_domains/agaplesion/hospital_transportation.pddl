@@ -28,7 +28,7 @@
         (destination_floor ?elevator - elevator ?floor - floor)
     )
 
-    (:action GOTO
+    (:action GO_TO
         :parameters (?bot - robot ?from ?to - location ?floor_from ?floor_to - floor ?load - load)
         :precondition (and
             (robot_at ?bot ?from)
