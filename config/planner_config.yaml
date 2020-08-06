@@ -1,4 +1,4 @@
 planner_name: LAMA
-domain_file: /path/to/config/task_domains/agaplesion/hospital_transportation.pddl
-planner_cmd: /path/to/fast-downward/fast-downward.py --plan-file PLAN-FILE --search-time-limit 10 --alias seq-sat-lama-2011 DOMAIN PROBLEM
+domain_file: /opt/ropod/task-planner/config/task_domains/agaplesion/hospital_transportation.pddl
+planner_cmd: /opt/ropod/task-planner/bin/fast-downward/fast-downward.py --plan-file PLAN-FILE --search-time-limit 10 --alias seq-sat-lama-2011 DOMAIN PROBLEM
 plan_file_path: .
